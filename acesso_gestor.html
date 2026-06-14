@@ -20,6 +20,12 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Verifica a sessão atual
+    // Se não há flag de sessão ativa (aba fechada/reaberta), faz logout preventivo
+    if (!sessionStorage.getItem('yosef_session_active')) {
+      sb.auth.signOut().then(() => {
+        window.location.href = 'index.html';
+      });
+    } else {
     sb.auth.getSession().then(({ data }) => {
       if (!data.session) {
         // Sem sessão -> Redireciona para o login
@@ -34,6 +40,7 @@
             if (error || !profile || profile.role !== 'gestor') {
               // Se não for gestor ou ocorrer erro -> Desloga e vai para o login
               sb.auth.signOut().then(() => {
+                sessionStorage.removeItem('yosef_session_active');
                 window.location.href = 'index.html';
               });
             } else {
@@ -53,6 +60,7 @@
     }).catch(() => {
       window.location.href = 'index.html';
     });
+    }
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -2076,6 +2084,7 @@
       <div style="display:flex;gap:7px">
         <button class="btn btn-outline btn-sm" id="btnImprimir" onclick="openPrintModal()">🖨️ Imprimir</button>
         <button class="btn btn-outline btn-sm" onclick="reconnect()">🔄 Atualizar</button>
+        <button class="btn btn-sm" onclick="sairGestor()" style="background:rgba(240,101,149,.12);color:#f06595;border:1px solid rgba(240,101,149,.3)">⏻ Sair</button>
       </div>
     </div>
 
@@ -3422,6 +3431,35 @@
     // SETTINGS
     // ============================================================
     function clearSavedUrl() { localStorage.removeItem('scriptUrl'); document.getElementById('scriptUrl').value = ''; document.getElementById('savedUrlDisplay').textContent = 'Nenhuma URL salva'; lastUrl = ''; }
+
+    // ── LOGOUT ──
+    async function sairGestor() {
+      sessionStorage.removeItem('yosef_session_active');
+      await sb.auth.signOut();
+      window.location.href = 'index.html';
+    }
+
+    // ── INATIVIDADE (5 min) ──
+    (function iniciarWatchdogInatividade() {
+      const TIMEOUT_MS = 5 * 60 * 1000;
+      let timer;
+
+      function resetar() {
+        clearTimeout(timer);
+        timer = setTimeout(async () => {
+          sessionStorage.removeItem('yosef_session_active');
+          await sb.auth.signOut();
+          alert('Sessão encerrada por inatividade.');
+          window.location.href = 'index.html';
+        }, TIMEOUT_MS);
+      }
+
+      ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'].forEach(evt => {
+        document.addEventListener(evt, resetar, { passive: true });
+      });
+
+      resetar();
+    })();
 
     // ============================================================
     // SIDEBAR TOGGLE
