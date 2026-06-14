@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yosef — Acesso</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: linear-gradient(135deg, #0d131f 0%, #151828 50%, #1b1222 100%);
+      --surface: rgba(26, 29, 39, 0.55);
+      --border: rgba(255, 255, 255, 0.1);
+      --accent: #4f8ef7;
+      --text: #e8eaf0;
+      --text2: #8b90a7;
+      --danger: #f06595;
+      --radius: 16px;
+      --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      padding: 40px 36px 36px;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .logo-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #4f8ef7 0%, #38d9a9 100%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .logo h1 {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    .logo p {
+      font-size: 13px;
+      color: var(--text2);
+      margin-top: 3px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 7px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 11px 14px;
+      background: rgba(34, 38, 58, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .field input:focus {
+      border-color: var(--accent);
+    }
+
+    .field input::placeholder {
+      color: var(--text2);
+      opacity: 0.5;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.2px;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .error-msg {
+      display: none;
+      background: rgba(240, 101, 149, 0.12);
+      border: 1px solid rgba(240, 101, 149, 0.3);
+      border-radius: 8px;
+      color: var(--danger);
+      font-size: 13px;
+      padding: 10px 14px;
+      margin-top: 14px;
+      text-align: center;
+    }
+
+    .error-msg.show {
+      display: block;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text2);
+      margin-top: 24px;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">🏥</div>
+      <h1>Yosef</h1>
+      <p>Sistema de Fisioterapia Hospitalar</p>
+    </div>
+
+    <div class="field">
+      <label>Usuário</label>
+      <input type="text" id="username" placeholder="seu.usuario" autocomplete="username">
+    </div>
+
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="senha" placeholder="••••••••" autocomplete="current-password">
+    </div>
+
+    <button class="btn" id="btnLogin" onclick="fazerLogin()">Entrar</button>
+
+    <div class="error-msg" id="erroMsg">Usuário ou senha incorretos.</div>
+
+    <p class="footer-note">Acesso restrito à equipe autorizada</p>
+  </div>
+
+  <script>
+    // ============================================================
+    // ⚠️  SUBSTITUA OS DOIS VALORES ABAIXO
+    // ============================================================
+    const SUPABASE_URL = 'https://wxtqzqlkpcrmxztwxeix.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4dHF6cWxrcGNybXh6dHd4ZWl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MjAzMDQsImV4cCI6MjA5Njk5NjMwNH0.JuaK9WIzMJPGjW6LnF-6yynsLOh5MNjCXYZmaESRZVw';
+    // ============================================================
+
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Se já estiver logado, redireciona direto
+    sb.auth.getSession().then(({ data }) => {
+      if (data.session) redirecionarPorRole(data.session.user.id);
+    });
+
+    async function fazerLogin() {
+      const username = document.getElementById('username').value.trim().toLowerCase();
+      const senha = document.getElementById('senha').value;
+      const btn = document.getElementById('btnLogin');
+      const erro = document.getElementById('erroMsg');
+
+      if (!username || !senha) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Entrando...';
+      erro.classList.remove('show');
+      erro.textContent = 'Usuário ou senha incorretos.';
+
+      // 1. Busca o email pelo username na tabela profiles
+      // Essa consulta usa a coluna "username" que é pública (não exige RLS para select)
+      const { data: profile, error: erroBusca } = await sb
+        .from('profiles')
+        .select('email, role')
+        .eq('username', username)
+        .single();
+
+      if (erroBusca || !profile) {
+        mostrarErro(btn);
+        return;
+      }
+
+      // 2. Autentica com o email encontrado + senha informada
+      const { data, error } = await sb.auth.signInWithPassword({
+        email: profile.email,
+        password: senha
+      });
+
+      if (error || !data.user) {
+        mostrarErro(btn);
+        return;
+      }
+
+      // 3. Redireciona pelo role já carregado
+      redirecionar(profile.role);
+    }
+
+    function redirecionar(role) {
+      if (role === 'gestor') {
+        window.location.href = 'acesso_gestor.html';
+      } else if (role === 'fisioterapeuta' || role === 'fisio') {
+        window.location.href = 'acesso_fisio.html';
+      } else {
+        document.getElementById('erroMsg').textContent = 'Perfil sem permissão. Contate o administrador.';
+        document.getElementById('erroMsg').classList.add('show');
+        sb.auth.signOut();
+        resetBtn();
+      }
+    }
+
+    async function redirecionarPorRole(userId) {
+      const { data: profile } = await sb
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+      redirecionar(profile?.role);
+    }
+
+    function mostrarErro(btn) {
+      document.getElementById('erroMsg').classList.add('show');
+      resetBtn();
+    }
+
+    function resetBtn() {
+      const btn = document.getElementById('btnLogin');
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') fazerLogin();
+    });
+  </script>
+</body>
+
+</html>
