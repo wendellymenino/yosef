@@ -257,7 +257,7 @@
     function redirecionar(role) {
       if (role === 'gestor') {
         window.location.href = 'index.html';
-      } else if (role === 'fisioterapeuta') {
+      } else if (role === 'fisioterapeuta' || role === 'fisio') {
         window.location.href = 'fisio.html';
       } else {
         document.getElementById('erroMsg').textContent = 'Perfil sem permissão. Contate o administrador.';

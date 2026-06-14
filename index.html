@@ -38,10 +38,15 @@
               });
             } else {
               // Acesso autorizado -> Exibe a página removendo o escudo
-              document.addEventListener('DOMContentLoaded', () => {
+              const removeShield = () => {
                 const shield = document.getElementById('auth-shield');
                 if (shield) shield.remove();
-              });
+              };
+              if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', removeShield);
+              } else {
+                removeShield();
+              }
             }
           });
       }
