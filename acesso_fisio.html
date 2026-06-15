@@ -760,7 +760,7 @@
             const { data: p } = await sb.from('profiles').select('nome,role').eq('id', usuarioAtual.id).single();
             perfilAtual = p;
 
-            if (!p || (p.role !== 'fisioterapeuta' && p.role !== 'fisio')) {
+            if (!p || p.role !== 'operacional') {
                 window.location.href = p?.role === 'gestor' ? 'acesso_gestor.html' : 'index.html';
                 return;
             }
