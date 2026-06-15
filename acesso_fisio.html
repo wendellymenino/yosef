@@ -746,15 +746,15 @@
 
         // ── INIT ──
         (async () => {
-            // Se não há flag de sessão ativa (aba foi fechada e reaberta), redireciona
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) { window.location.href = 'index.html'; return; }
+
+            // Se há sessão Supabase mas não há flag (aba fechada e reaberta), faz logout
             if (!sessionStorage.getItem('yosef_session_active')) {
                 await sb.auth.signOut();
                 window.location.href = 'index.html';
                 return;
             }
-
-            const { data: { session } } = await sb.auth.getSession();
-            if (!session) { window.location.href = 'index.html'; return; }
 
             usuarioAtual = session.user;
             const { data: p } = await sb.from('profiles').select('nome,role').eq('id', usuarioAtual.id).single();
