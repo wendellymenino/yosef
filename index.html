@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yosef — Acesso</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: linear-gradient(135deg, #0d131f 0%, #151828 50%, #1b1222 100%);
+      --surface: rgba(26, 29, 39, 0.55);
+      --border: rgba(255, 255, 255, 0.1);
+      --accent: #4f8ef7;
+      --text: #e8eaf0;
+      --text2: #8b90a7;
+      --danger: #f06595;
+      --radius: 16px;
+      --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .brand-logo {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      color: var(--text2);
+      margin-top: 4px;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 11px 14px;
+      background: rgba(34, 38, 58, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .field input:focus {
+      border-color: var(--accent);
+      background: rgba(34, 38, 58, 0.55);
+    }
+
+    .forgot-link-container {
+      text-align: right;
+      margin-top: 6px;
+    }
+
+    .forgot-link {
+      color: var(--text2);
+      font-size: 12px;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .forgot-link:hover {
+      color: var(--accent);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-top: 8px;
+    }
+
+    .btn-login:active {
+      transform: scale(0.98);
+    }
+
+    .btn-login:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .error-msg {
+      background: rgba(240, 101, 149, 0.1);
+      border: 1px solid rgba(240, 101, 149, 0.2);
+      color: var(--danger);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-top: 16px;
+      display: none;
+      text-align: center;
+    }
+
+    .error-msg.show {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-container">
+    <div class="brand">
+      <div class="brand-logo">🏥</div>
+      <div class="brand-title">Yosef</div>
+      <div class="brand-subtitle">Entre com as suas credenciais de acesso</div>
+    </div>
+
+    <div class="field">
+      <label>Usuário</label>
+      <input type="text" id="login-user" placeholder="Ex: joao_silva" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="login-senha" placeholder="Sua senha">
+      <div class="forgot-link-container">
+        <a href="#" class="forgot-link" onclick="recuperarSenha(event)">Esqueceu a senha?</a>
+      </div>
+    </div>
+
+    <button class="btn-login" id="btnLogin" onclick="tentarLogin()">Entrar</button>
+
+    <div class="error-msg" id="erroMsg">Usuário ou senha incorretos.</div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://ykevrqzeekhhwlhzaitt.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrZXZycXplZWtoaHdsaHphaXR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0NTgyMjQsImV4cCI6MjA5NzAzNDIyNH0.VuJAa0C2ze2AeZhiFynaYxaUteTDTmxT7RzNwe3DYsY';
+
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Monitora sessão ativa ao carregar a página
+    window.onload = async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session && sessionStorage.getItem('yosef_session_active')) {
+        redirecionarPorRole(session.user.id);
+      }
+    };
+
+    async function tentarLogin() {
+      const btn = document.getElementById('btnLogin');
+      const userInput = document.getElementById('login-user').value.trim();
+      const senha = document.getElementById('login-senha').value;
+      document.getElementById('erroMsg').classList.remove('show');
+
+      if (!userInput || !senha) return;
+
+      btn.disabled = true;
+      btn.textContent = 'A entrar...';
+
+      // 1. Busca o perfil pelo username inserido
+      const { data: profile, error: pError } = await sb
+        .from('profiles')
+        .select('email, role')
+        .eq('username', userInput)
+        .maybeSingle();
+
+      if (pError || !profile) {
+        mostrarErro(btn);
+        return;
+      }
+
+      // 2. Autentica com o email encontrado + senha informada
+      const { data, error } = await sb.auth.signInWithPassword({
+        email: profile.email,
+        password: senha
+      });
+
+      if (error || !data.user) {
+        mostrarErro(btn);
+        return;
+      }
+
+      // 3. Redireciona pelo role já carregado
+      redirecionar(profile.role);
+    }
+
+    // ── FUNÇÃO: ESQUECEU A SENHA ──
+    async function recuperarSenha(event) {
+      event.preventDefault();
+      
+      const userInput = document.getElementById('login-user').value.trim();
+      
+      if (!userInput) {
+        alert('Por favor, digite o seu nome de "Usuário" no campo acima primeiro para localizarmos o seu e-mail.');
+        return;
+      }
+
+      // Busca o e-mail do profissional com base no username digitado
+      const { data: profile, error } = await sb
+        .from('profiles')
+        .select('email')
+        .eq('username', userInput)
+        .maybeSingle();
+
+      if (error || !profile) {
+        alert('Não encontramos nenhum usuário com esse nome no sistema. Verifique a grafia.');
+        return;
+      }
+
+      // Define para onde o link do e-mail vai apontar (sua nova página recuperar.html)
+      const URL_REDEFINICAO = window.location.origin + '/recuperar.html';
+
+      // Dispara o e-mail de recuperação integrado ao Supabase Auth
+      const { error: resetError } = await sb.auth.resetPasswordForEmail(profile.email, {
+        redirectTo: URL_REDEFINICAO,
+      });
+
+      if (resetError) {
+        alert('Erro ao processar solicitação: ' + resetError.message);
+      } else {
+        alert('E-mail de recuperação enviado com sucesso para o endereço cadastrado! Verifique a sua caixa de entrada ou spam.');
+      }
+    }
+
+    function redirecionar(role) {
+      sessionStorage.setItem('yosef_session_active', '1');
+      if (role === 'gestor') {
+        window.location.href = 'acesso_gestor.html';
+      } else if (role === 'operacional') {
+        window.location.href = 'acesso_fisio.html';
+      } else {
+        document.getElementById('erroMsg').textContent = 'Perfil sem permissão. Contate o administrador.';
+        document.getElementById('erroMsg').classList.add('show');
+        sb.auth.signOut();
+        resetBtn();
+      }
+    }
+
+    async function redirecionarPorRole(userId) {
+      const { data: profile } = await sb
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+      redirecionar(profile?.role);
+    }
+
+    function mostrarErro(btn) {
+      document.getElementById('erroMsg').textContent = 'Usuário ou senha incorretos.';
+      document.getElementById('erroMsg').classList.add('show');
+      resetBtn();
+    }
+
+    function resetBtn() {
+      const btn = document.getElementById('btnLogin');
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+    }
+  </script>
+</body>
+
+</html>

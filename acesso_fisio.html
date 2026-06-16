@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yosef — Fisioterapeuta</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: linear-gradient(135deg, #0d131f 0%, #151828 50%, #1b1222 100%);
+            --surface: rgba(26, 29, 39, 0.55);
+            --surface2: rgba(34, 38, 58, 0.5);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #4f8ef7;
+            --accent2: #38d9a9;
+            --accent3: #ffa94d;
+            --accent4: #f06595;
+            --text: #e8eaf0;
+            --text2: #8b90a7;
+            --danger: #f06595;
+            --success: #38d9a9;
+            --radius: 14px;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── TOPBAR ── */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(26, 29, 39, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #4f8ef7, #38d9a9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .brand-name {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .brand-sub {
+            font-size: 11px;
+            color: var(--text2);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-badge {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: var(--text2);
+        }
+
+        .user-badge span {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .btn-logout {
+            background: rgba(240, 101, 149, 0.1);
+            border: 1px solid rgba(240, 101, 149, 0.3);
+            color: var(--danger);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(240, 101, 149, 0.2);
+        }
+
+        /* ── CONTENT ── */
+        .content {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+
+        /* ── TABS ── */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 9px 20px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text2);
+            transition: all .2s;
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .tab:hover:not(.active) {
+            color: var(--text);
+        }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* ── CARD ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 18px;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+        }
+
+        /* ── FORM GRID ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .form-grid.cols3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: 6px;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            padding: 9px 12px;
+            background: rgba(34, 38, 58, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--accent);
+        }
+
+        .field select option {
+            background: #1a1d27;
+        }
+
+        .divider {
+            grid-column: span 2;
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 4px 0;
+        }
+
+        /* ── BUTTONS ── */
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 18px;
+        }
+
+        .btn {
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: opacity .2s, transform .1s;
+        }
+
+        .btn:active {
+            transform: scale(.98);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: var(--surface2);
+            color: var(--text2);
+            border: 1px solid var(--border);
+        }
+
+        .btn-danger {
+            background: rgba(240, 101, 149, 0.12);
+            color: var(--danger);
+            border: 1px solid rgba(240, 101, 149, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-size: 13px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(16px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .toast.ok {
+            border-color: rgba(56, 217, 169, .4);
+            color: var(--success);
+        }
+
+        .toast.err {
+            border-color: rgba(240, 101, 149, .4);
+            color: var(--danger);
+        }
+
+        /* ── HISTÓRICO ── */
+        .hist-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .hist-search {
+            flex: 1;
+            min-width: 180px;
+            padding: 8px 12px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .hist-search:focus {
+            border-color: var(--accent);
+        }
+
+        .reg-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 10px;
+            transition: border-color .2s;
+        }
+
+        .reg-card:hover {
+            border-color: rgba(79, 142, 247, .3);
+        }
+
+        .reg-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .reg-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .reg-meta {
+            font-size: 12px;
+            color: var(--text2);
+        }
+
+        .reg-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .chip {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            background: rgba(79, 142, 247, .12);
+            color: var(--accent);
+            border: 1px solid rgba(79, 142, 247, .2);
+        }
+
+        .chip.green {
+            background: rgba(56, 217, 169, .1);
+            color: var(--accent2);
+            border-color: rgba(56, 217, 169, .2);
+        }
+
+        .chip.orange {
+            background: rgba(255, 169, 77, .1);
+            color: var(--accent3);
+            border-color: rgba(255, 169, 77, .2);
+        }
+
+        .chip.pink {
+            background: rgba(240, 101, 149, .1);
+            color: var(--accent4);
+            border-color: rgba(240, 101, 149, .2);
+        }
+
+        .chip.gray {
+            background: rgba(139, 144, 167, .1);
+            color: var(--text2);
+            border-color: rgba(139, 144, 167, .2);
+        }
+
+        .reg-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 11px;
+            border-radius: 7px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text2);
+        }
+
+        .empty-state .ico {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 32px;
+            color: var(--text2);
+            font-size: 13px;
+        }
+
+        /* ── MODAL EDIÇÃO ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(0, 0, 0, .6);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: rgba(22, 25, 36, .95);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 28px;
+            width: 100%;
+            max-width: 640px;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: 16px;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: var(--text2);
+            font-size: 20px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .btn-close:hover {
+            color: var(--text);
+        }
+
+        @media(max-width:600px) {
+
+            .form-grid,
+            .form-grid.cols3 {
+                grid-template-columns: 1fr;
+            }
+
+            .col-span-2 {
+                grid-column: span 1;
+            }
+
+            .divider {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-brand">
+            <div class="brand-icon">🏥</div>
+            <div>
+                <div class="brand-name">Yosef</div>
+                <div class="brand-sub">Painel do Fisioterapeuta</div>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="user-badge">Olá, <span id="nomeUsuario">—</span></div>
+            <button class="btn-logout" onclick="sair()">Sair</button>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <div class="tabs">
+            <button class="tab active" onclick="trocarTab('nova')">＋ Nova avaliação</button>
+            <button class="tab" onclick="trocarTab('historico')">📋 Meu histórico</button>
+        </div>
+
+        <div class="panel active" id="tab-nova">
+            <div class="card">
+                <div class="card-title">Dados do paciente</div>
+                <div class="form-grid cols3">
+                    <div class="field">
+                        <label>Nome completo *</label>
+                        <input type="text" id="f-paciente" placeholder="Nome completo">
+                    </div>
+                    <div class="field">
+                        <label>Prontuário *</label>
+                        <input type="text" id="f-prontuario" placeholder="Nº do prontuário">
+                    </div>
+                    <div class="field">
+                        <label>Leito *</label>
+                        <select id="f-leito">
+                            <option value="">— Selecione —</option>
+                            <option value="01-A">01-A</option><option value="02-A">02-A</option><option value="03-A">03-A</option><option value="04-A">04-A</option><option value="04-B">04-B</option><option value="05-A">05-A</option><option value="05-B">05-B</option><option value="09-A">09-A</option><option value="09-B">09-B</option><option value="10-A">10-A</option><option value="11-A">11-A</option><option value="12-A">12-A</option><option value="13-A">13-A</option><option value="14-A">14-A</option><option value="15-A">15-A</option><option value="16-A">16-A</option><option value="17-A">17-A</option><option value="17-B">17-B</option><option value="18-A">18-A</option><option value="18-B">18-B</option><option value="19-A">19-A</option><option value="19-B">19-B</option><option value="21-A">21-A</option><option value="21-B">21-B</option><option value="22-A">22-A</option><option value="22-B">22-B</option><option value="23-A">23-A</option><option value="23-B">23-B</option><option value="24-A">24-A</option><option value="25-A">25-A</option><option value="26-A">26-A</option><option value="27-A">27-A</option><option value="28-A">28-A</option><option value="28-B">28-B</option><option value="29-A">29-A</option><option value="29-B">29-B</option><option value="33-A">33-A</option><option value="33-B">33-B</option><option value="34-B">34-B</option><option value="35-B">35-B</option><option value="36-A">36-A</option><option value="37-A">37-A</option><option value="38-A">38-A</option><option value="101-A">101-A</option><option value="102-A">102-A</option><option value="103-A">103-A</option><option value="104-A">104-A</option><option value="105-A">105-A</option><option value="106-A">106-A</option><option value="107-A">107-A</option><option value="107-B">107-B</option><option value="109-A">109-A</option><option value="110-A">110-A</option><option value="111-A">111-A</option><option value="112-A">112-A</option><option value="113-A">113-A</option><option value="114-A">114-A</option><option value="115-A">115-A</option><option value="116-A">116-A</option><option value="117-A">117-A</option><option value="117-B">117-B</option><option value="118-A">118-A</option><option value="118-B">118-B</option><option value="119-A">119-A</option><option value="119-B">119-B</option><option value="121-A">121-A</option><option value="121-B">121-B</option><option value="122-A">122-A</option><option value="122-B">122-B</option><option value="123-A">123-A</option><option value="123-B">123-B</option><option value="124-A">124-A</option><option value="125-A">125-A</option><option value="126-A">126-A</option><option value="127-A">127-A</option><option value="128-A">128-A</option><option value="129-A">129-A</option><option value="130-A">130-A</option><option value="130-B">130-B</option><option value="132-A">132-A</option><option value="132-B">132-B</option><option value="133-A">133-A</option><option value="134-A">134-A</option><option value="135-A">135-A</option><option value="136-A">136-A</option><option value="137-A">137-A</option><option value="138-A">138-A</option><option value="201-A">201-A</option><option value="202-A">202-A</option><option value="203-A">203-A</option><option value="204-A">204-A</option><option value="204-B">204-B</option><option value="205-A">205-A</option><option value="205-B">205-B</option><option value="206-A">206-A</option><option value="206-B">206-B</option><option value="207-A">207-A</option><option value="207-B">207-B</option><option value="209-A">209-A</option><option value="209-B">209-B</option><option value="210-A">210-A</option><option value="210-B">210-B</option><option value="211-A">211-A</option><option value="211-B">211-B</option><option value="212-A">212-A</option><option value="213-A">213-A</option><option value="214-A">214-A</option><option value="225-A">225-A</option><option value="226-A">226-A</option><option value="227-A">227-A</option><option value="227-B">227-B</option><option value="228-A">228-A</option><option value="228-B">228-B</option><option value="229-A">229-A</option><option value="229-B">229-B</option><option value="230-A">230-A</option><option value="230-B">230-B</option><option value="233-A">233-A</option><option value="233-B">233-B</option><option value="234-A">234-A</option><option value="235-A">235-A</option><option value="235-B">235-B</option><option value="236-A">236-A</option><option value="237-A">237-A</option><option value="238-A">238-A</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Registro da avaliação</div>
+                <div class="form-grid">
+                    <div class="field">
+                        <label>Data *</label>
+                        <input type="date" id="f-data">
+                    </div>
+                    <div class="field">
+                        <label>Tipo de atendimento *</label>
+                        <select id="f-tipo">
+                            <option value="">— Selecione —</option>
+                            <option>Avaliação Inicial</option>
+                            <option>Reavaliação</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Status do paciente *</label>
+                        <select id="f-status">
+                            <option value="">— Selecione —</option>
+                            <option>Em acompanhamento</option>
+                            <option>Alta hospitalar</option>
+                            <option>Óbito</option>
+                            <option>Transferência</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Previsão de alta *</label>
+                        <select id="f-previsao">
+                            <option value="">— Selecione —</option>
+                            <option>&lt; 2 semanas</option>
+                            <option>2–4 semanas</option>
+                            <option>4 a 6 semanas</option>
+                            <option>6 a 8 semanas</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Avaliação clínica</div>
+                <div class="form-grid">
+                    <div class="field">
+                        <label>Nível da mobilidade atual *</label>
+                        <select id="f-mobilidade">
+                            <option value="">— Selecione —</option>
+                            <option>Acamado</option>
+                            <option>Sedestação</option>
+                            <option>Ortostatismo</option>
+                            <option>Marcha assistida</option>
+                            <option>Marcha Independente</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Nível de dependência (AVD) *</label>
+                        <select id="f-dependencia">
+                            <option value="">— Selecione —</option>
+                            <option>Independente</option>
+                            <option>Leve</option>
+                            <option>Moderado</option>
+                            <option>Grave</option>
+                            <option>Total</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>MRC (escala 0–60) *</label>
+                        <input type="number" id="f-mrc" min="0" max="60" placeholder="Ex: 45">
+                    </div>
+                    <div class="field">
+                        <label>O₂ suplementar *</label>
+                        <select id="f-o2">
+                            <option value="">— Selecione —</option>
+                            <option>Sim</option>
+                            <option>Não</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Ventilação mecânica *</label>
+                        <select id="f-vm">
+                            <option value="">— Selecione —</option>
+                            <option>Não</option>
+                            <option>Sim-Invasiva</option>
+                            <option>Sim-Não Invasiva</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Via aérea *</label>
+                        <select id="f-via">
+                            <option value="">— Selecione —</option>
+                            <option>Fisiológica</option>
+                            <option>Traqueostomia</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-secondary" onclick="limparForm()">Limpar</button>
+                <button class="btn btn-primary" id="btnSalvar" onclick="salvarAvaliacao()">Salvar avaliação</button>
+            </div>
+        </div>
+
+        <div class="panel" id="tab-historico">
+            <div class="hist-controls">
+                <input class="hist-search" type="text" id="buscaHist" placeholder="Buscar por paciente ou prontuário..."
+                    oninput="filtrarHistorico()">
+                <select
+                    style="padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:inherit;font-size:13px;outline:none;"
+                    id="filtroTipo" onchange="filtrarHistorico()">
+                    <option value="">Todos os tipos</option>
+                    <option>Avaliação Inicial</option>
+                    <option>Reavaliação</option>
+                </select>
+            </div>
+            <div id="listaHist">
+                <div class="loading">Carregando...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Editar avaliação</h3>
+                <button class="btn-close" onclick="fecharModal()">✕</button>
+            </div>
+            <div class="form-grid" id="modalGrid">
+                </div>
+            <div class="btn-row" style="margin-top:18px;">
+                <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+                <button class="btn btn-primary" id="btnSalvarEdit" onclick="salvarEdicao()">Salvar alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================================
+        const SUPABASE_URL = 'https://ykevrqzeekhhwlhzaitt.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrZXZycXplZWtoaHdsaHphaXR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0NTgyMjQsImV4cCI6MjA5NzAzNDIyNH0.VuJAa0C2ze2AeZhiFynaYxaUteTDTmxT7RzNwe3DYsY';
+
+        const { createClient } = supabase;
+        const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let usuarioAtual = null;
+        let perfilAtual = null;
+        let todosRegistros = [];
+        let editandoId = null;
+
+        const LISTA_LEITOS = ['01-A', '02-A', '03-A', '04-A', '04-B', '05-A', '05-B', '09-A', '09-B', '10-A', '11-A', '12-A', '13-A', '14-A', '15-A', '16-A', '17-A', '17-B', '18-A', '18-B', '19-A', '19-B', '21-A', '21-B', '22-A', '22-B', '23-A', '23-B', '24-A', '25-A', '26-A', '27-A', '28-A', '28-B', '29-A', '29-B', '33-A', '33-B', '34-B', '35-B', '36-A', '37-A', '38-A', '101-A', '102-A', '103-A', '104-A', '105-A', '106-A', '107-A', '107-B', '109-A', '110-A', '111-A', '112-A', '113-A', '114-A', '115-A', '116-A', '117-A', '117-B', '118-A', '118-B', '119-A', '119-B', '121-A', '121-B', '122-A', '122-B', '123-A', '123-B', '124-A', '125-A', '126-A', '127-A', '128-A', '129-A', '130-A', '130-B', '132-A', '132-B', '133-A', '134-A', '135-A', '136-A', '137-A', '138-A', '201-A', '202-A', '203-A', '204-A', '204-B', '205-A', '205-B', '206-A', '206-B', '207-A', '207-B', '209-A', '209-B', '210-A', '210-B', '211-A', '211-B', '212-A', '213-A', '214-A', '225-A', '226-A', '227-A', '227-B', '228-A', '228-B', '229-A', '229-B', '230-A', '230-B', '233-A', '233-B', '234-A', '235-A', '235-B', '236-A', '237-A', '238-A'];
+
+        // ── INIT ──
+        (async () => {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) { window.location.href = 'index.html'; return; }
+
+            if (!sessionStorage.getItem('yosef_session_active')) {
+                await sb.auth.signOut();
+                window.location.href = 'index.html';
+                return;
+            }
+
+            usuarioAtual = session.user;
+            const { data: p } = await sb.from('profiles').select('nome,role').eq('id', usuarioAtual.id).single();
+            perfilAtual = p;
+
+            if (!p || p.role !== 'operacional') {
+                window.location.href = p?.role === 'gestor' ? 'acesso_gestor.html' : 'index.html';
+                return;
+            }
+
+            document.getElementById('nomeUsuario').textContent = p.nome || 'Fisioterapeuta';
+            document.getElementById('f-data').value = new Date().toISOString().split('T')[0];
+            await carregarHistorico();
+        })();
+
+        // ── TABS ──
+        function trocarTab(tab) {
+            document.querySelectorAll('.tab').forEach((t, i) => {
+                const ids = ['nova', 'historico'];
+                t.classList.toggle('active', ids[i] === tab);
+            });
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            if (tab === 'historico') carregarHistorico();
+        }
+
+        // ── SALVAR AVALIAÇÃO ──
+        async function salvarAvaliacao() {
+            const campos = [
+                { val: v('f-paciente'), msg: 'Nome completo' },
+                { val: v('f-prontuario'), msg: 'Prontuário' },
+                { val: v('f-leito'), msg: 'Leito' },
+                { val: v('f-data'), msg: 'Data' },
+                { val: v('f-tipo'), msg: 'Tipo de atendimento' },
+                { val: v('f-status'), msg: 'Status do paciente' },
+                { val: v('f-previsao'), msg: 'Previsão de alta' },
+                { val: v('f-mobilidade'), msg: 'Nível da mobilidade atual' },
+                { val: v('f-dependencia'), msg: 'Nível de dependência (AVD)' },
+                { val: v('f-mrc'), msg: 'MRC' },
+                { val: v('f-o2'), msg: 'O₂ suplementar' },
+                { val: v('f-vm'), msg: 'Ventilação mecânica' },
+                { val: v('f-via'), msg: 'Via aérea' }
+            ];
+
+            for (let c of campos) {
+                if (c.val === '') {
+                    toast(`O campo "${c.msg}" é obrigatório.`, 'err');
+                    return;
+                }
+            }
+
+            const mrcVal = parseInt(v('f-mrc'));
+            if (isNaN(mrcVal) || mrcVal < 0 || mrcVal > 60) {
+                toast('O valor do MRC deve ser um número entre 0 e 60.', 'err');
+                return;
+            }
+
+            const btn = document.getElementById('btnSalvar');
+            btn.disabled = true; btn.textContent = 'Salvando...';
+
+            const reg = buildReg();
+
+            const { error } = await sb.from('avaliacoes').insert(reg);
+            btn.disabled = false; btn.textContent = 'Salvar avaliação';
+
+            if (error) { toast('Erro ao salvar: ' + error.message, 'err'); return; }
+            toast('Avaliação salva com sucesso!', 'ok');
+            limparForm();
+            await carregarHistorico();
+        }
+
+        function buildReg(extra = {}) {
+            return {
+                fisio_id: usuarioAtual.id,
+                fisio_nome: perfilAtual?.nome || '',
+                paciente: v('f-paciente'),
+                prontuario: v('f-prontuario'),
+                posto: '',
+                leito: v('f-leito'),
+                data_avaliacao: v('f-data') || null,
+                tipo: v('f-tipo'),
+                mobilidade: v('f-mobilidade'),
+                dispositivos: '', // Removido do formulário
+                o2: v('f-o2'),
+                vm: v('f-vm'),
+                via_aerea: v('f-via'),
+                dependencia: v('f-dependencia'),
+                mrc: v('f-mrc'),
+                status_paciente: v('f-status'),
+                previsao: v('f-previsao'),
+                ...extra
+            };
+        }
+
+        function v(id) { return document.getElementById(id)?.value.trim() || ''; }
+
+        function limparForm() {
+            ['f-paciente', 'f-prontuario', 'f-mrc'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.value = '';
+            });
+            ['f-leito', 'f-tipo', 'f-status', 'f-previsao', 'f-mobilidade', 'f-dependencia', 'f-o2', 'f-vm', 'f-via'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.value = '';
+            });
+            document.getElementById('f-data').value = new Date().toISOString().split('T')[0];
+        }
+
+        // ── HISTÓRICO ──
+        async function carregarHistorico() {
+            const { data, error } = await sb
+                .from('avaliacoes')
+                .select('*')
+                .eq('fisio_id', usuarioAtual.id)
+                .order('data_avaliacao', { ascending: false });
+
+            if (error) { document.getElementById('listaHist').innerHTML = '<div class="loading">Erro ao carregar.</div>'; return; }
+            todosRegistros = data || [];
+            renderHistorico(todosRegistros);
+        }
+
+        function filtrarHistorico() {
+            const busca = document.getElementById('buscaHist').value.toLowerCase();
+            const tipo = document.getElementById('filtroTipo').value;
+            const filtrado = todosRegistros.filter(r => {
+                const okBusca = !busca || r.paciente?.toLowerCase().includes(busca) || r.prontuario?.toLowerCase().includes(busca);
+                const okTipo = !tipo || r.tipo === tipo;
+                return okBusca && okTipo;
+            });
+            renderHistorico(filtrado);
+        }
+
+        function renderHistorico(lista) {
+            const el = document.getElementById('listaHist');
+            if (!lista.length) {
+                el.innerHTML = '<div class="empty-state"><div class="ico">📋</div><p>Nenhum registro encontrado.</p></div>';
+                return;
+            }
+            el.innerHTML = lista.map(r => `
+    <div class="reg-card">
+      <div class="reg-header">
+        <div>
+          <div class="reg-name">${esc(r.paciente)}</div>
+          <div class="reg-meta">Prontuário: ${r.prontuario || '—'} · Leito ${r.leito || '—'}</div>
+        </div>
+        <div class="reg-meta">${fmtData(r.data_avaliacao)}</div>
+      </div>
+      <div class="reg-chips">
+        ${chip(r.tipo, 'tipo')} ${chip(r.mobilidade, 'mob')} ${chip(r.status_paciente, 'status')}
+        ${r.vm && r.vm !== 'Não' ? `<span class="chip orange">VM: ${esc(r.vm)}</span>` : ''}
+        ${r.o2 === 'Sim' ? '<span class="chip orange">O₂</span>' : ''}
+        ${r.mrc ? `<span class="chip gray">MRC: ${esc(r.mrc)}</span>` : ''}
+      </div>
+      <div class="reg-actions">
+        <button class="btn btn-secondary btn-sm" onclick="abrirEdicao('${r.id}')">✏️ Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="excluir('${r.id}')">🗑 Excluir</button>
+      </div>
+    </div>
+  `).join('');
+        }
+
+        function chip(val, tipo) {
+            if (!val) return '';
+            let cls = 'chip';
+            if (tipo === 'tipo') {
+                if (val.includes('Inicial') || val.includes('Admissão')) cls += ' ';
+                else if (val.includes('Alta')) cls += ' green';
+                else if (val.includes('Óbito') || val.includes('Obito')) cls += ' pink';
+                else cls += ' orange';
+            }
+            if (tipo === 'status') {
+                if (val.toLowerCase().includes('alta')) cls += ' green';
+                else if (val.toLowerCase().includes('óbito') || val.toLowerCase().includes('obito')) cls += ' pink';
+                else cls += ' ';
+            }
+            if (tipo === 'mob') {
+                if (val.includes('Independente')) cls += ' green';
+                else if (val.includes('Acamado')) cls += ' pink';
+                else cls += ' orange';
+            }
+            return `<span class="${cls.trim()}">${esc(val)}</span>`;
+        }
+
+        function fmtData(d) {
+            if (!d) return '—';
+            const [y, m, dia] = d.split('-');
+            return `${dia}/${m}/${y}`;
+        }
+
+        function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+        // ── EDIÇÃO ──
+        function abrirEdicao(id) {
+            const r = todosRegistros.find(x => x.id === id);
+            if (!r) return;
+            editandoId = id;
+
+            document.getElementById('modalGrid').innerHTML = `
+    <div class="field"><label>Nome completo *</label><input type="text" id="e-paciente" value="${esc(r.paciente || '')}"></div>
+    <div class="field"><label>Prontuário *</label><input type="text" id="e-prontuario" value="${esc(r.prontuario || '')}"></div>
+    <div class="field"><label>Leito *</label>
+      <select id="e-leito">
+        <option value="">— Selecione —</option>
+        ${LISTA_LEITOS.map(o => `<option value="${o}"${r.leito === o ? ' selected' : ''}>${o}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field"><label>Data *</label><input type="date" id="e-data" value="${r.data_avaliacao || ''}"></div>
+    <div class="field"><label>Tipo *</label>
+      <select id="e-tipo">${['', 'Avaliação Inicial', 'Reavaliação'].map(o => `<option${r.tipo === o ? ' selected' : ''}>${o}</option>`).join('')}</select></div>
+    <div class="field"><label>Status *</label>
+      <select id="e-status">${['', 'Em acompanhamento', 'Alta hospitalar', 'Óbito', 'Transferência'].map(o => `<option${r.status_paciente === o ? ' selected' : ''}>${o}</option>`).join('')}</select></div>
+    <div class="field"><label>Previsão *</label>
+      <select id="e-previsao">${['', '< 2 semanas', '2–4 semanas', '4 a 6 semanas', '6 a 8 semanas'].map(o => `<option${r.previsao === o ? ' selected' : ''}>${o}</option>`).join('')}</select></div>
+    <div class="field"><label>Nível da mobilidade atual *</label>
+      <select id="e-mobilidade">${['', 'Acamado', 'Sedestação', 'Ortostatismo', 'Marcha assistida', 'Marcha Independente'].map(o => `<option${r.mobilidade === o ? ' selected' : ''}>${o}</option>`).join('')}</select></div>
+    <div class="field"><label>Nível de dependência (AVD) *</label>
+      <select id="e-dependencia">${['', 'Independente', 'Leve', 'Moderado', 'Grave', 'Total'].map(o => `<option${r.dependencia === o ? ' selected' : ''}>${o}</option>`).join('')}</select></div>
+    <div class="field"><label>MRC (0-60) *</label><input type="number" id="e-mrc" min="0" max="60" value="${esc(r.mrc || '')}"></div>
+    <div class="field"><label>O₂ *</label>
+      <select id="e-o2">${['', 'Sim', 'Não'].map(o => `<option${r.o2 === o ? ' selected' : ''}>${o}</option>`).join('')}</select></div>
+    <div class="field"><label>VM *</label>
+      <select id="e-vm">${['', 'Não', 'Sim-Invasiva', 'Sim-Não Invasiva'].map(o => `<option${r.vm === o ? ' selected' : ''}>${o}</option>`).join('')}</select></div>
+    <div class="field"><label>Via aérea *</label>
+      <select id="e-via">${['', 'Fisiológica', 'Traqueostomia'].map(o => `<option${r.via_aerea === o ? ' selected' : ''}>${o}</option>`).join('')}</select></div>
+  `;
+
+            document.getElementById('modalOverlay').classList.add('show');
+        }
+
+        function fecharModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            editandoId = null;
+        }
+
+        async function salvarEdicao() {
+            if (!editandoId) return;
+            const vv = id => document.getElementById(id)?.value.trim() || '';
+
+            const camposEdit = [
+                { val: vv('e-paciente'), msg: 'Nome completo' },
+                { val: vv('e-prontuario'), msg: 'Prontuário' },
+                { val: vv('e-leito'), msg: 'Leito' },
+                { val: vv('e-data'), msg: 'Data' },
+                { val: vv('e-tipo'), msg: 'Tipo' },
+                { val: vv('e-status'), msg: 'Status' },
+                { val: vv('e-previsao'), msg: 'Previsão' },
+                { val: vv('e-mobilidade'), msg: 'Nível da mobilidade atual' },
+                { val: vv('e-dependencia'), msg: 'Nível de dependência (AVD)' },
+                { val: vv('e-mrc'), msg: 'MRC' },
+                { val: vv('e-o2'), msg: 'O₂' },
+                { val: vv('e-vm'), msg: 'VM' },
+                { val: vv('e-via'), msg: 'Via aérea' }
+            ];
+
+            for (let c of camposEdit) {
+                if (c.val === '') {
+                    toast(`O campo "${c.msg}" é obrigatório na edição.`, 'err');
+                    return;
+                }
+            }
+
+            const mrcVal = parseInt(vv('e-mrc'));
+            if (isNaN(mrcVal) || mrcVal < 0 || mrcVal > 60) {
+                toast('O valor do MRC deve ser um número entre 0 e 60.', 'err');
+                return;
+            }
+
+            const btn = document.getElementById('btnSalvarEdit');
+            btn.disabled = true; btn.textContent = 'Salvando...';
+
+            const { error } = await sb.from('avaliacoes').update({
+                paciente: vv('e-paciente'),
+                prontuario: vv('e-prontuario'),
+                leito: vv('e-leito'),
+                data_avaliacao: vv('e-data') || null,
+                tipo: vv('e-tipo'),
+                status_paciente: vv('e-status'),
+                previsao: vv('e-previsao'),
+                mobilidade: vv('e-mobilidade'),
+                dependencia: vv('e-dependencia'),
+                mrc: vv('e-mrc'),
+                o2: vv('e-o2'),
+                vm: vv('e-vm'),
+                via_aerea: vv('e-via')
+            }).eq('id', editandoId);
+
+            btn.disabled = false; btn.textContent = 'Salvar alterações';
+            if (error) { toast('Erro ao salvar: ' + error.message, 'err'); return; }
+            fecharModal();
+            toast('Alterações salvas!', 'ok');
+            await carregarHistorico();
+        }
+
+        async function excluir(id) {
+            if (!confirm('Excluir este registro permanentemente?')) return;
+            const { error } = await sb.from('avaliacoes').delete().eq('id', id);
+            if (error) { toast('Erro ao excluir.', 'err'); return; }
+            toast('Registro excluído.', 'ok');
+            await carregarHistorico();
+        }
+
+        // ── LOGOUT ──
+        async function sair() {
+            sessionStorage.removeItem('yosef_session_active');
+            await sb.auth.signOut();
+            window.location.href = 'index.html';
+        }
+
+        // ── INATIVIDADE (5 min) ──
+        (function iniciarWatchdogInatividade() {
+            const TIMEOUT_MS = 5 * 60 * 1000;
+            let timer;
+
+            function resetar() {
+                clearTimeout(timer);
+                timer = setTimeout(async () => {
+                    sessionStorage.removeItem('yosef_session_active');
+                    await sb.auth.signOut();
+                    alert('Sessão encerrada por inatividade.');
+                    window.location.href = 'index.html';
+                }, TIMEOUT_MS);
+            }
+
+            ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'].forEach(evt => {
+                document.addEventListener(evt, resetar, { passive: true });
+            });
+
+            resetar();
+        })();
+
+        // ── TOAST ──
+        function toast(msg, tipo = 'ok') {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = 'toast show ' + tipo;
+            clearTimeout(toast._t);
+            toast._t = setTimeout(() => el.classList.remove('show'), 3500);
+        }
+
+        document.getElementById('modalOverlay').addEventListener('click', function (e) {
+            if (e.target === this) fecharModal();
+        });
+    </script>
+</body>
+
+</html>

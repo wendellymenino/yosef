@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yosef — Redefinir Senha</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --bg: linear-gradient(135deg, #0d131f 0%, #151828 50%, #1b1222 100%);
+            --surface: rgba(26, 29, 39, 0.55);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #4f8ef7;
+            --text: #e8eaf0;
+            --text2: #8b90a7;
+            --radius: 14px;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            width: 100%;
+            max-width: 400px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: var(--shadow);
+        }
+        h2 { font-size: 20px; margin-bottom: 6px; font-weight: 600; letter-spacing: -0.5px; }
+        p { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+        .field { margin-bottom: 18px; }
+        .field label { display: block; font-size: 11px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .field input {
+            width: 100%; padding: 11px 14px; background: rgba(34, 38, 58, 0.4);
+            border: 1px solid var(--border); border-radius: 10px;
+            color: var(--text); font-family: inherit; font-size: 14px; outline: none;
+            transition: border-color 0.2s;
+        }
+        .field input:focus { border-color: var(--accent); }
+        .btn {
+            width: 100%; padding: 12px; background: var(--accent); color: #fff;
+            border: none; border-radius: 10px; font-weight: 600; font-size: 14px;
+            cursor: pointer; transition: opacity 0.2s; margin-top: 8px;
+        }
+        .btn:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Criar Nova Senha</h2>
+        <p>Introduza abaixo a sua nova palavra-passe de acesso.</p>
+        
+        <div class="field">
+            <label>Nova Senha</label>
+            <input type="password" id="nova-senha" placeholder="Mínimo 6 caracteres">
+        </div>
+        <div class="field">
+            <label>Confirme a Nova Senha</label>
+            <input type="password" id="confirma-senha" placeholder="Digite a senha novamente">
+        </div>
+        
+        <button class="btn" id="btnAtualizar" onclick="atualizarSenha()">Atualizar Senha</button>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ykevrqzeekhhwlhzaitt.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrZXZycXplZWtoaHdsaHphaXR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0NTgyMjQsImV4cCI6MjA5NzAzNDIyNH0.VuJAa0C2ze2AeZhiFynaYxaUteTDTmxT7RzNwe3DYsY';
+        
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Limpa o estado de redirecionamento do index assim que a página abre
+        window.onload = () => {
+            sessionStorage.removeItem('yosef_session_active');
+        };
+
+        async function atualizarSenha() {
+            const senha = document.getElementById('nova-senha').value;
+            const confirma = document.getElementById('confirma-senha').value;
+            const btn = document.getElementById('btnAtualizar');
+
+            if (senha.length < 6) {
+                alert('A senha precisa ter no mínimo 6 caracteres.');
+                return;
+            }
+
+            if (senha !== confirma) {
+                alert('As senhas não coincidem!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'A atualizar...';
+
+            // O Supabase identifica o utilizador usando os parâmetros ocultos que ele injetou na URL ao clicar no e-mail
+            const { error } = await sb.auth.updateUser({ password: senha });
+
+            if (error) {
+                alert('Erro ao atualizar senha: ' + error.message);
+                btn.disabled = false;
+                btn.textContent = 'Atualizar Senha';
+            } else {
+                alert('Senha alterada com sucesso! Você será redirecionado para a tela de login.');
+                
+                // Desloga completamente para limpar os tokens temporários gerados pelo e-mail
+                await sb.auth.signOut();
+                
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+</html>
