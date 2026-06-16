@@ -267,13 +267,13 @@
         return;
       }
 
-      // Define para onde o link do e-mail vai apontar (sua nova página recuperar.html)
-      const URL_REDEFINICAO = window.location.origin + '/recuperar.html';
+      // Captura automaticamente se o site está no GitHub ou local e adiciona o recuperar.html à frente
+const URL_REDEFINICAO = window.location.origin + window.location.pathname.replace('index.html', '') + 'recuperar.html';
 
-      // Dispara o e-mail de recuperação integrado ao Supabase Auth
-      const { error: resetError } = await sb.auth.resetPasswordForEmail(profile.email, {
-        redirectTo: URL_REDEFINICAO,
-      });
+// Dispara o e-mail de recuperação integrado ao Supabase Auth
+const { error: resetError } = await sb.auth.resetPasswordForEmail(profile.email, {
+  redirectTo: URL_REDEFINICAO,
+});
 
       if (resetError) {
         alert('Erro ao processar solicitação: ' + resetError.message);
