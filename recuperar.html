@@ -90,19 +90,46 @@
         };
 
         async function atualizarSenha() {
-            const senha = document.getElementById('nova-senha').value;
-            const confirma = document.getElementById('confirma-senha').value;
-            const btn = document.getElementById('btnAtualizar');
+    const senha = document.getElementById('nova-senha').value;
+    const confirma = document.getElementById('confirma-senha').value;
+    const btn = document.getElementById('btnAtualizar');
 
-            if (senha.length < 6) {
-                alert('A senha precisa ter no mínimo 6 caracteres.');
-                return;
-            }
+    if (senha.length < 6) { 
+        alert('A senha precisa ter no mínimo 6 caracteres.'); 
+        return; 
+    }
+    if (senha !== confirma) { 
+        alert('As senhas não coincidem!'); 
+        return; 
+    }
 
-            if (senha !== confirma) {
-                alert('As senhas não coincidem!');
-                return;
-            }
+    btn.disabled = true;
+    btn.textContent = 'A atualizar...';
+
+    try {
+        // Envia a nova senha para o Supabase
+        const { error } = await sb.auth.updateUser({ password: senha });
+
+        if (error) {
+            alert('Erro do Supabase: ' + error.message);
+            btn.disabled = false;
+            btn.textContent = 'Atualizar Senha';
+        } else {
+            alert('Senha alterada com sucesso! Você será redirecionado.');
+            
+            // Limpa os dados de sessão e desloga
+            sessionStorage.removeItem('yosef_session_active');
+            await sb.auth.signOut();
+            
+            // Retorna para a página inicial de login no GitHub
+            window.location.href = 'index.html';
+        }
+    } catch (err) {
+        alert('Erro inesperado no sistema: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = 'Atualizar Senha';
+    }
+}
 
             btn.disabled = true;
             btn.textContent = 'A atualizar...';
@@ -122,7 +149,7 @@
                 
                 window.location.href = 'index.html';
             }
-        }
+        
     </script>
 </body>
 </html>
