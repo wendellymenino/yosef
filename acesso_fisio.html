@@ -540,6 +540,7 @@
         <div class="tabs">
             <button class="tab active" onclick="trocarTab('nova')">＋ Nova avaliação</button>
             <button class="tab" onclick="trocarTab('historico')">📋 Meu histórico</button>
+            <button class="tab" onclick="trocarTab('paciente')">🔍 Histórico paciente</button>
         </div>
 
         <div class="panel active" id="tab-nova">
@@ -683,6 +684,29 @@
             </div>
             <div id="listaHist">
                 <div class="loading">Carregando...</div>
+            </div>
+        </div>
+
+        <div class="panel" id="tab-paciente">
+            <div class="card">
+                <div class="card-title">Buscar paciente</div>
+                <div class="form-grid">
+                    <div class="field">
+                        <label>Prontuário</label>
+                        <input class="hist-search" type="text" id="hp-prontuario" placeholder="Nº do prontuário" style="width:100%" oninput="filtrarHistPaciente()">
+                    </div>
+                    <div class="field">
+                        <label>Filtrar por data</label>
+                        <input class="hist-search" type="date" id="hp-data" style="width:100%" onchange="filtrarHistPaciente()">
+                    </div>
+                </div>
+            </div>
+            <div id="infoPaciente" style="display:none" class="card" id="cardInfoPaciente">
+                <div class="card-title">Dados do paciente</div>
+                <div id="infoPacienteConteudo" style="font-size:13px;color:var(--text2);display:flex;gap:24px;flex-wrap:wrap;"></div>
+            </div>
+            <div id="listaHistPaciente">
+                <div class="empty-state"><div class="ico">🔍</div><p>Digite um prontuário para buscar.</p></div>
             </div>
         </div>
 
