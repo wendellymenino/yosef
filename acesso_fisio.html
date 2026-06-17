@@ -547,12 +547,16 @@
                 <div class="card-title">Dados do paciente</div>
                 <div class="form-grid cols3">
                     <div class="field">
-                        <label>Nome completo *</label>
-                        <input type="text" id="f-paciente" placeholder="Nome completo">
-                    </div>
-                    <div class="field">
                         <label>Prontuário *</label>
-                        <input type="text" id="f-prontuario" placeholder="Nº do prontuário">
+                        <input type="text" id="f-prontuario" placeholder="Nº do prontuário" oninput="buscarPacientePorProntuario(this.value)">
+                    </div>
+                    <div class="field" id="field-paciente">
+                        <label>Nome completo *</label>
+                        <input type="text" id="f-paciente" placeholder="Nome completo" disabled style="opacity:.5">
+                    </div>
+                    <div class="field" id="field-nascimento">
+                        <label>Data de nascimento *</label>
+                        <input type="date" id="f-nascimento" disabled style="opacity:.5">
                     </div>
                     <div class="field">
                         <label>Leito *</label>
@@ -713,6 +717,46 @@
         let perfilAtual = null;
         let todosRegistros = [];
         let editandoId = null;
+        let postoAtual = '';
+        let _prontuarioTimer = null;
+
+        // ── BUSCA PACIENTE POR PRONTUÁRIO ──
+        async function buscarPacientePorProntuario(valor) {
+            const np = document.getElementById('f-paciente');
+            const nn = document.getElementById('f-nascimento');
+            const prontuario = valor.trim();
+
+            // Limpa campos ao apagar
+            if (!prontuario) {
+                np.value = ''; np.disabled = true; np.style.opacity = '.5'; np.readOnly = false;
+                nn.value = ''; nn.disabled = true; nn.style.opacity = '.5'; nn.readOnly = false;
+                return;
+            }
+
+            // Debounce: aguarda 600ms após parar de digitar
+            clearTimeout(_prontuarioTimer);
+            _prontuarioTimer = setTimeout(async () => {
+                const { data, error } = await sb
+                    .from('pacientes')
+                    .select('nome, data_nascimento')
+                    .eq('prontuario', prontuario)
+                    .maybeSingle();
+
+                if (data) {
+                    // Paciente encontrado → preenche e bloqueia edição
+                    np.value = data.nome;
+                    nn.value = data.data_nascimento;
+                    np.disabled = false; np.style.opacity = '1'; np.readOnly = true;
+                    nn.disabled = false; nn.style.opacity = '1'; nn.readOnly = true;
+                    toast('Paciente encontrado: ' + data.nome, 'ok');
+                } else {
+                    // Não encontrado → libera preenchimento obrigatório
+                    np.value = ''; np.disabled = false; np.style.opacity = '1'; np.readOnly = false;
+                    nn.value = ''; nn.disabled = false; nn.style.opacity = '1'; nn.readOnly = false;
+                    np.focus();
+                }
+            }, 600);
+        }
 
         const LISTA_LEITOS = ['01-A', '02-A', '03-A', '04-A', '04-B', '05-A', '05-B', '09-A', '09-B', '10-A', '11-A', '12-A', '13-A', '14-A', '15-A', '16-A', '17-A', '17-B', '18-A', '18-B', '19-A', '19-B', '21-A', '21-B', '22-A', '22-B', '23-A', '23-B', '24-A', '25-A', '26-A', '27-A', '28-A', '28-B', '29-A', '29-B', '33-A', '33-B', '34-B', '35-B', '36-A', '37-A', '38-A', '101-A', '102-A', '103-A', '104-A', '105-A', '106-A', '107-A', '107-B', '109-A', '110-A', '111-A', '112-A', '113-A', '114-A', '115-A', '116-A', '117-A', '117-B', '118-A', '118-B', '119-A', '119-B', '121-A', '121-B', '122-A', '122-B', '123-A', '123-B', '124-A', '125-A', '126-A', '127-A', '128-A', '129-A', '130-A', '130-B', '132-A', '132-B', '133-A', '134-A', '135-A', '136-A', '137-A', '138-A', '201-A', '202-A', '203-A', '204-A', '204-B', '205-A', '205-B', '206-A', '206-B', '207-A', '207-B', '209-A', '209-B', '210-A', '210-B', '211-A', '211-B', '212-A', '213-A', '214-A', '225-A', '226-A', '227-A', '227-B', '228-A', '228-B', '229-A', '229-B', '230-A', '230-B', '233-A', '233-B', '234-A', '235-A', '235-B', '236-A', '237-A', '238-A'];
 
@@ -755,8 +799,9 @@
         // ── SALVAR AVALIAÇÃO ──
         async function salvarAvaliacao() {
             const campos = [
-                { val: v('f-paciente'), msg: 'Nome completo' },
                 { val: v('f-prontuario'), msg: 'Prontuário' },
+                { val: v('f-paciente'), msg: 'Nome completo' },
+                { val: v('f-nascimento'), msg: 'Data de nascimento' },
                 { val: v('f-leito'), msg: 'Leito' },
                 { val: v('f-data'), msg: 'Data' },
                 { val: v('f-tipo'), msg: 'Tipo de atendimento' },
@@ -786,8 +831,14 @@
             const btn = document.getElementById('btnSalvar');
             btn.disabled = true; btn.textContent = 'Salvando...';
 
-            const reg = buildReg();
+            // Salva ou atualiza paciente na tabela de pacientes
+            await sb.from('pacientes').upsert({
+                prontuario: v('f-prontuario'),
+                nome: v('f-paciente'),
+                data_nascimento: v('f-nascimento')
+            }, { onConflict: 'prontuario' });
 
+            const reg = buildReg();
             const { error } = await sb.from('avaliacoes').insert(reg);
             btn.disabled = false; btn.textContent = 'Salvar avaliação';
 
@@ -803,12 +854,12 @@
                 fisio_nome: perfilAtual?.nome || '',
                 paciente: v('f-paciente'),
                 prontuario: v('f-prontuario'),
-                posto: '',
+                posto: postoAtual,
                 leito: v('f-leito'),
                 data_avaliacao: v('f-data') || null,
                 tipo: v('f-tipo'),
                 mobilidade: v('f-mobilidade'),
-                dispositivos: '', // Removido do formulário
+                dispositivos: '',
                 o2: v('f-o2'),
                 vm: v('f-vm'),
                 via_aerea: v('f-via'),
@@ -823,13 +874,19 @@
         function v(id) { return document.getElementById(id)?.value.trim() || ''; }
 
         function limparForm() {
-            ['f-paciente', 'f-prontuario', 'f-mrc'].forEach(id => {
+            ['f-paciente', 'f-prontuario', 'f-mrc', 'f-nascimento'].forEach(id => {
                 const el = document.getElementById(id); if (el) el.value = '';
             });
             ['f-leito', 'f-tipo', 'f-status', 'f-previsao', 'f-mobilidade', 'f-dependencia', 'f-o2', 'f-vm', 'f-via'].forEach(id => {
                 const el = document.getElementById(id); if (el) el.value = '';
             });
             document.getElementById('f-data').value = new Date().toISOString().split('T')[0];
+            postoAtual = '';
+            // Desabilita nome e nascimento até digitar prontuário
+            const np = document.getElementById('f-paciente');
+            const nn = document.getElementById('f-nascimento');
+            if (np) { np.disabled = true; np.style.opacity = '.5'; np.readOnly = false; }
+            if (nn) { nn.disabled = true; nn.style.opacity = '.5'; nn.readOnly = false; }
         }
 
         // ── HISTÓRICO ──
