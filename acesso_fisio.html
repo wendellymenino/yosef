@@ -687,26 +687,44 @@
             </div>
         </div>
 
+        <!-- ── PAINEL: HISTÓRICO PACIENTE ── -->
         <div class="panel" id="tab-paciente">
             <div class="card">
-                <div class="card-title">Buscar paciente</div>
-                <div class="form-grid">
+                <div class="card-title">Buscar atendimentos do paciente</div>
+                <div class="form-grid cols3">
                     <div class="field">
                         <label>Prontuário</label>
-                        <input class="hist-search" type="text" id="hp-prontuario" placeholder="Nº do prontuário" style="width:100%" oninput="filtrarHistPaciente()">
+                        <input class="hist-search" type="text" id="hp-prontuario"
+                            placeholder="Nº do prontuário"
+                            style="width:100%"
+                            oninput="buscarHistPaciente()">
                     </div>
                     <div class="field">
-                        <label>Filtrar por data</label>
-                        <input class="hist-search" type="date" id="hp-data" style="width:100%" onchange="filtrarHistPaciente()">
+                        <label>Data início</label>
+                        <input class="hist-search" type="date" id="hp-data-ini"
+                            style="width:100%"
+                            onchange="buscarHistPaciente()">
+                    </div>
+                    <div class="field">
+                        <label>Data fim</label>
+                        <input class="hist-search" type="date" id="hp-data-fim"
+                            style="width:100%"
+                            onchange="buscarHistPaciente()">
                     </div>
                 </div>
             </div>
-            <div id="infoPaciente" style="display:none" class="card" id="cardInfoPaciente">
+
+            <!-- Info do paciente (aparece quando encontrado) -->
+            <div id="hp-info-card" class="card" style="display:none">
                 <div class="card-title">Dados do paciente</div>
-                <div id="infoPacienteConteudo" style="font-size:13px;color:var(--text2);display:flex;gap:24px;flex-wrap:wrap;"></div>
+                <div id="hp-info-corpo" style="display:flex;gap:32px;flex-wrap:wrap;font-size:13px;"></div>
             </div>
+
             <div id="listaHistPaciente">
-                <div class="empty-state"><div class="ico">🔍</div><p>Digite um prontuário para buscar.</p></div>
+                <div class="empty-state">
+                    <div class="ico">🔍</div>
+                    <p>Digite um prontuário para buscar os atendimentos...</p>
+                </div>
             </div>
         </div>
 
@@ -811,8 +829,8 @@
 
         // ── TABS ──
         function trocarTab(tab) {
+            const ids = ['nova', 'historico', 'paciente'];
             document.querySelectorAll('.tab').forEach((t, i) => {
-                const ids = ['nova', 'historico'];
                 t.classList.toggle('active', ids[i] === tab);
             });
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -1104,6 +1122,86 @@
             if (error) { toast('Erro ao excluir.', 'err'); return; }
             toast('Registro excluído.', 'ok');
             await carregarHistorico();
+        }
+
+        // ── HISTÓRICO PACIENTE (todos os fisios) ──
+        let _hpTimer = null;
+
+        async function buscarHistPaciente() {
+            const prontuario = document.getElementById('hp-prontuario').value.trim();
+            const dataIni = document.getElementById('hp-data-ini').value;
+            const dataFim = document.getElementById('hp-data-fim').value;
+            const lista = document.getElementById('listaHistPaciente');
+            const infoCard = document.getElementById('hp-info-card');
+
+            if (!prontuario) {
+                infoCard.style.display = 'none';
+                lista.innerHTML = '<div class="empty-state"><div class="ico">🔍</div><p>Digite um prontuário para buscar os atendimentos.</p></div>';
+                return;
+            }
+
+            clearTimeout(_hpTimer);
+            _hpTimer = setTimeout(async () => {
+                lista.innerHTML = '<div class="loading">Buscando...</div>';
+
+                // Busca dados do paciente na tabela pacientes
+                const { data: pac } = await sb
+                    .from('pacientes')
+                    .select('nome, data_nascimento')
+                    .eq('prontuario', prontuario)
+                    .maybeSingle();
+
+                if (pac) {
+                    infoCard.style.display = 'block';
+                    document.getElementById('hp-info-corpo').innerHTML = `
+                        <div><span style="color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.5px">Nome</span><br><strong>${esc(pac.nome)}</strong></div>
+                        <div><span style="color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.5px">Prontuário</span><br><strong>${esc(prontuario)}</strong></div>
+                        <div><span style="color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.5px">Nascimento</span><br><strong>${pac.data_nascimento ? fmtData(pac.data_nascimento) : '—'}</strong></div>
+                    `;
+                } else {
+                    infoCard.style.display = 'none';
+                }
+
+                // Busca avaliações do paciente (todos os fisios)
+                let query = sb
+                    .from('avaliacoes')
+                    .select('*')
+                    .eq('prontuario', prontuario)
+                    .order('data_avaliacao', { ascending: false });
+
+                if (dataIni) query = query.gte('data_avaliacao', dataIni);
+                if (dataFim) query = query.lte('data_avaliacao', dataFim);
+
+                const { data, error } = await query;
+
+                if (error) {
+                    lista.innerHTML = '<div class="loading">Erro ao carregar atendimentos.</div>';
+                    return;
+                }
+
+                if (!data || !data.length) {
+                    lista.innerHTML = '<div class="empty-state"><div class="ico">📋</div><p>Nenhum atendimento encontrado para este prontuário.</p></div>';
+                    return;
+                }
+
+                lista.innerHTML = data.map(r => `
+                    <div class="reg-card">
+                      <div class="reg-header">
+                        <div>
+                          <div class="reg-name">${esc(r.paciente)}</div>
+                          <div class="reg-meta">Leito ${r.leito || '—'} · ${esc(r.posto || '—')} · <span style="color:var(--accent)">Fisio: ${esc(r.fisio_nome || '—')}</span></div>
+                        </div>
+                        <div class="reg-meta">${fmtData(r.data_avaliacao)}</div>
+                      </div>
+                      <div class="reg-chips">
+                        ${chip(r.tipo, 'tipo')} ${chip(r.mobilidade, 'mob')} ${chip(r.status_paciente, 'status')}
+                        ${r.vm && r.vm !== 'Não' ? `<span class="chip orange">VM: ${esc(r.vm)}</span>` : ''}
+                        ${r.o2 === 'Sim' ? '<span class="chip orange">O₂</span>' : ''}
+                        ${r.mrc ? `<span class="chip gray">MRC: ${esc(r.mrc)}</span>` : ''}
+                      </div>
+                    </div>
+                `).join('');
+            }, 500);
         }
 
         // ── LOGOUT ──
