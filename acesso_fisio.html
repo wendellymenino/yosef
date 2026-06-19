@@ -661,6 +661,16 @@
                             <option>Traqueostomia</option>
                         </select>
                     </div>
+                    <div class="field">
+                        <label>Dispositivo de auxílio *</label>
+                        <select id="f-dispositivo">
+                            <option value="">— Selecione —</option>
+                            <option>Nenhum</option>
+                            <option>Andador</option>
+                            <option>Cadeira de rodas</option>
+                            <option>Bengala</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -854,7 +864,8 @@
                 { val: v('f-mrc'), msg: 'MRC' },
                 { val: v('f-o2'), msg: 'O₂ suplementar' },
                 { val: v('f-vm'), msg: 'Ventilação mecânica' },
-                { val: v('f-via'), msg: 'Via aérea' }
+                { val: v('f-via'), msg: 'Via aérea' },
+                { val: v('f-dispositivo'), msg: 'Dispositivo de auxílio' }
             ];
 
             for (let c of campos) {
@@ -901,7 +912,7 @@
                 data_avaliacao: v('f-data') || null,
                 tipo: v('f-tipo'),
                 mobilidade: v('f-mobilidade'),
-                dispositivos: '',
+                dispositivos: v('f-dispositivo'),
                 o2: v('f-o2'),
                 vm: v('f-vm'),
                 via_aerea: v('f-via'),
@@ -919,7 +930,7 @@
             ['f-paciente', 'f-prontuario', 'f-mrc', 'f-nascimento'].forEach(id => {
                 const el = document.getElementById(id); if (el) el.value = '';
             });
-            ['f-leito', 'f-tipo', 'f-status', 'f-previsao', 'f-mobilidade', 'f-dependencia', 'f-o2', 'f-vm', 'f-via'].forEach(id => {
+            ['f-leito', 'f-tipo', 'f-status', 'f-previsao', 'f-mobilidade', 'f-dependencia', 'f-o2', 'f-vm', 'f-via', 'f-dispositivo'].forEach(id => {
                 const el = document.getElementById(id); if (el) el.value = '';
             });
             document.getElementById('f-data').value = new Date().toISOString().split('T')[0];
@@ -1047,6 +1058,8 @@
       <select id="e-vm">${['', 'Não', 'Sim-Invasiva', 'Sim-Não Invasiva'].map(o => `<option${r.vm === o ? ' selected' : ''}>${o}</option>`).join('')}</select></div>
     <div class="field"><label>Via aérea *</label>
       <select id="e-via">${['', 'Fisiológica', 'Traqueostomia'].map(o => `<option${r.via_aerea === o ? ' selected' : ''}>${o}</option>`).join('')}</select></div>
+    <div class="field"><label>Dispositivo de auxílio *</label>
+      <select id="e-dispositivo">${['', 'Nenhum', 'Andador', 'Cadeira de rodas', 'Bengala'].map(o => `<option${r.dispositivos === o ? ' selected' : ''}>${o}</option>`).join('')}</select></div>
   `;
 
             document.getElementById('modalOverlay').classList.add('show');
@@ -1074,7 +1087,8 @@
                 { val: vv('e-mrc'), msg: 'MRC' },
                 { val: vv('e-o2'), msg: 'O₂' },
                 { val: vv('e-vm'), msg: 'VM' },
-                { val: vv('e-via'), msg: 'Via aérea' }
+                { val: vv('e-via'), msg: 'Via aérea' },
+                { val: vv('e-dispositivo'), msg: 'Dispositivo de auxílio' }
             ];
 
             for (let c of camposEdit) {
@@ -1106,7 +1120,8 @@
                 mrc: vv('e-mrc'),
                 o2: vv('e-o2'),
                 vm: vv('e-vm'),
-                via_aerea: vv('e-via')
+                via_aerea: vv('e-via'),
+                dispositivos: vv('e-dispositivo')
             }).eq('id', editandoId);
 
             btn.disabled = false; btn.textContent = 'Salvar alterações';
