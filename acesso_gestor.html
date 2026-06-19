@@ -101,13 +101,18 @@
     .stat-card,
     .chart-card,
     .table-card,
-    .patient-row-card,
     .patient-detail,
     .settings-section,
-    .modal,
-    .leito-card {
+    .modal {
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+    }
+
+    /* Cards repetidos por paciente/leito (podem ser dezenas/centenas):
+       sem backdrop-filter para evitar travamento de FPS — só sombra + fundo translúcido */
+    .patient-row-card,
+    .leito-card {
       box-shadow: var(--shadow);
     }
 
