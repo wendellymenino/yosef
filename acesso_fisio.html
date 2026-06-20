@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yosef — Fisioterapeuta</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
@@ -28,10 +29,12 @@
             --accent4: #f06595;
             --text: #e8eaf0;
             --text2: #8b90a7;
+            --text3: #5a5f7a;
             --danger: #f06595;
             --success: #38d9a9;
             --radius: 14px;
             --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            --input-bg: rgba(34, 38, 58, 0.4);
         }
 
         body {
@@ -501,6 +504,328 @@
             color: var(--text);
         }
 
+        /* ── PATIENT DETAIL (linha do tempo, gráficos, leitos, histórico) ── */
+        .patient-detail {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+            margin-bottom: 18px;
+            display: none;
+        }
+
+        .detail-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 18px;
+            overflow-x: auto;
+        }
+
+        .detail-tab {
+            padding: 9px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text2);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+            transition: all .15s;
+        }
+
+        .detail-tab:hover {
+            color: var(--text);
+        }
+
+        .detail-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .detail-section {
+            display: none;
+        }
+
+        .detail-section.active {
+            display: block;
+        }
+
+        /* TIMELINE */
+        .timeline {
+            display: flex;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 4px;
+        }
+
+        .timeline-item {
+            flex: 0 0 175px;
+            position: relative;
+        }
+
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 108px;
+            right: -67px;
+            height: 2px;
+            background: var(--border);
+        }
+
+        .tl-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 7px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tl-dot.admissao {
+            background: rgba(79, 142, 247, .2);
+            color: var(--accent);
+            border: 2px solid var(--accent);
+        }
+
+        .tl-dot.reavaliacao {
+            background: rgba(255, 169, 77, .2);
+            color: var(--accent3);
+            border: 2px solid var(--accent3);
+        }
+
+        .tl-dot.alta {
+            background: rgba(56, 217, 169, .2);
+            color: var(--accent2);
+            border: 2px solid var(--accent2);
+        }
+
+        .tl-dot.obito {
+            background: rgba(240, 101, 149, .2);
+            color: var(--accent4);
+            border: 2px solid var(--accent4);
+        }
+
+        .tl-dot.transferencia {
+            background: rgba(218, 119, 242, .2);
+            color: #da77f2;
+            border: 2px solid #da77f2;
+        }
+
+        .tl-dot.cycle-start {
+            outline: 3px solid rgba(218, 119, 242, .5);
+            outline-offset: 2px;
+        }
+
+        .tl-date {
+            font-size: 9px;
+            color: var(--text2);
+            margin-bottom: 2px;
+        }
+
+        .tl-type {
+            font-size: 10px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .tl-mob {
+            font-size: 9px;
+            color: var(--text2);
+        }
+
+        .cycle-badge {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: 700;
+            background: rgba(218, 119, 242, .15);
+            color: #da77f2;
+            margin-left: 6px;
+        }
+
+        /* CHARTS */
+        .evo-charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        @media(max-width:700px) {
+            .evo-charts {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .chart-title {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .chart-sub {
+            font-size: 10px;
+            color: var(--text2);
+            margin-bottom: 14px;
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 160px;
+        }
+
+        /* LEITO TABLE */
+        .leito-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .leito-current {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .leito-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(79, 142, 247, .15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .leito-label {
+            font-size: 10px;
+            color: var(--text2);
+        }
+
+        .leito-value {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .leito-history {
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+        }
+
+        .leito-history-title {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            margin-bottom: 8px;
+        }
+
+        .leito-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+        }
+
+        .leito-row:last-child {
+            border-bottom: none;
+        }
+
+        .leito-arrow {
+            color: var(--accent3);
+            font-size: 10px;
+        }
+
+        /* TABELA HISTÓRICO COMPLETO */
+        .scrollable {
+            overflow-x: auto;
+        }
+
+        .scrollable table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .scrollable th {
+            padding: 9px 12px;
+            text-align: left;
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface2);
+            white-space: nowrap;
+        }
+
+        .scrollable td {
+            padding: 9px 12px;
+            font-size: 11px;
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .scrollable tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* BADGES (linha do tempo / tabela) */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .badge-blue {
+            background: rgba(79, 142, 247, .15);
+            color: var(--accent);
+        }
+
+        .badge-green {
+            background: rgba(56, 217, 169, .15);
+            color: var(--accent2);
+        }
+
+        .badge-orange {
+            background: rgba(255, 169, 77, .15);
+            color: var(--accent3);
+        }
+
+        .badge-pink {
+            background: rgba(240, 101, 149, .15);
+            color: var(--accent4);
+        }
+
+        .badge-gray {
+            background: rgba(139, 144, 167, .15);
+            color: var(--text2);
+        }
+
         @media(max-width:600px) {
 
             .form-grid,
@@ -728,6 +1053,68 @@
             <div id="hp-info-card" class="card" style="display:none">
                 <div class="card-title">Dados do paciente</div>
                 <div id="hp-info-corpo" style="display:flex;gap:32px;flex-wrap:wrap;font-size:13px;"></div>
+            </div>
+
+            <!-- Linha do tempo / gráficos / leitos / histórico completo -->
+            <div id="hp-detail" class="patient-detail">
+                <div class="detail-tabs">
+                    <div class="detail-tab active" onclick="trocarHpTab('timeline',this)">📅 Linha do Tempo</div>
+                    <div class="detail-tab" onclick="trocarHpTab('charts',this)">📈 Gráficos</div>
+                    <div class="detail-tab" onclick="trocarHpTab('leitos',this)">🛏 Movimentação de Leitos</div>
+                    <div class="detail-tab" onclick="trocarHpTab('history',this)">📋 Histórico Completo</div>
+                </div>
+
+                <!-- Tab: Linha do Tempo -->
+                <div class="detail-section active" id="hp-dtab-timeline">
+                    <div id="hpCycleInfo" style="margin-bottom:12px;font-size:11px;color:var(--text2);"></div>
+                    <div class="timeline" id="hpTimeline"></div>
+                </div>
+
+                <!-- Tab: Gráficos -->
+                <div class="detail-section" id="hp-dtab-charts">
+                    <div class="evo-charts">
+                        <div class="chart-card">
+                            <div class="chart-title">Score MRC</div>
+                            <div class="chart-sub">Força muscular por avaliação</div>
+                            <div class="chart-wrap"><canvas id="hpChartMRC"></canvas></div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-title">Progressão de Mobilidade</div>
+                            <div class="chart-sub">Nível de mobilidade por avaliação</div>
+                            <div class="chart-wrap"><canvas id="hpChartMob"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Movimentação de Leitos -->
+                <div class="detail-section" id="hp-dtab-leitos">
+                    <div id="hpLeitoContent"></div>
+                </div>
+
+                <!-- Tab: Histórico Completo -->
+                <div class="detail-section" id="hp-dtab-history">
+                    <div class="scrollable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Tipo</th>
+                                    <th>Setor</th>
+                                    <th>Leito</th>
+                                    <th>Mobilidade</th>
+                                    <th>Dependência</th>
+                                    <th>MRC</th>
+                                    <th>O₂</th>
+                                    <th>VM</th>
+                                    <th>Via Aérea</th>
+                                    <th>Dispositivos</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hpTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <div id="listaHistPaciente">
@@ -1171,9 +1558,11 @@
             const dataFim = document.getElementById('hp-data-fim').value;
             const lista = document.getElementById('listaHistPaciente');
             const infoCard = document.getElementById('hp-info-card');
+            const detail = document.getElementById('hp-detail');
 
             if (!prontuario) {
                 infoCard.style.display = 'none';
+                detail.style.display = 'none';
                 lista.innerHTML = '<div class="empty-state"><div class="ico">🔍</div><p>Digite um prontuário para buscar os atendimentos.</p></div>';
                 return;
             }
@@ -1214,11 +1603,13 @@
 
                 if (error) {
                     lista.innerHTML = '<div class="loading">Erro ao carregar atendimentos.</div>';
+                    detail.style.display = 'none';
                     return;
                 }
 
                 if (!data || !data.length) {
                     lista.innerHTML = '<div class="empty-state"><div class="ico">📋</div><p>Nenhum atendimento encontrado para este prontuário.</p></div>';
+                    detail.style.display = 'none';
                     return;
                 }
 
@@ -1239,7 +1630,256 @@
                       </div>
                     </div>
                 `).join('');
+
+                // Linha do tempo, gráficos, leitos e histórico completo
+                // (ordem cronológica crescente, igual à página "Evolução por Paciente" do acesso_gestor)
+                const rowsAsc = [...data].sort((a, b) => pd(a.data_avaliacao) - pd(b.data_avaliacao));
+                renderHpDetail(rowsAsc);
+                detail.style.display = 'block';
             }, 500);
+        }
+
+        // ============================================================
+        // LINHA DO TEMPO DO PACIENTE — mesma lógica/visual da página
+        // "Evolução por Paciente" do acesso_gestor.html, adaptada para
+        // os dados já carregados em buscarHistPaciente().
+        // ============================================================
+        const MOB = ['Acamado', 'Sedestação', 'Ortostatismo', 'Marcha assistida', 'Marcha Independente'];
+        let hpRowsAtual = [];
+        let hpCharts = {};
+
+        function pd(s) {
+            if (!s) return 0;
+            const p = String(s).split('/');
+            if (p.length === 3) return new Date(p[2] + '-' + ('0' + p[1]).slice(-2) + '-' + ('0' + p[0]).slice(-2)).getTime();
+            return new Date(s).getTime();
+        }
+
+        function mobScore(v) { const i = MOB.indexOf(v); return i >= 0 ? i + 1 : 0; }
+
+        function tyClass(v) {
+            if (!v) return 'reavaliacao';
+            if (v.includes('nicial') || v.includes('dmissão') || v.toLowerCase().includes('avaliação inicial')) return 'admissao';
+            if (v.includes('Alta') || v.toLowerCase().includes('alta')) return 'alta';
+            if (v.includes('bito')) return 'obito';
+            if (v.includes('ransfer')) return 'transferencia';
+            return 'reavaliacao';
+        }
+
+        function tyBadge(v) {
+            if (!v) return 'badge-gray';
+            if (v.includes('nicial') || v.includes('dmissão') || v.toLowerCase().includes('avaliação inicial')) return 'badge-blue';
+            if (v.toLowerCase() === 'alta da fisioterapia') return 'badge-green';
+            if (v.includes('eavalia')) return 'badge-orange';
+            if (v.includes('Alta')) return 'badge-green';
+            if (v.includes('bito')) return 'badge-pink';
+            if (v.includes('ransfer')) return 'badge-orange';
+            return 'badge-gray';
+        }
+
+        function mobBadge(v) {
+            return {
+                'Acamado': 'badge-pink',
+                'Sedestação': 'badge-orange',
+                'Ortostatismo': 'badge-orange',
+                'Marcha assistida': 'badge-blue',
+                'Marcha Independente': 'badge-green'
+            }[v] || 'badge-gray';
+        }
+
+        function stBadge(v) {
+            if (!v) return 'badge-gray';
+            const vl = v.toLowerCase();
+            if (vl.includes('alta')) return 'badge-green';
+            if (vl.includes('óbito') || vl.includes('obito')) return 'badge-pink';
+            if (vl.includes('transfer')) return 'badge-orange';
+            return 'badge-blue';
+        }
+
+        function normalizeO2(raw) {
+            if (!raw) return 'Não';
+            const r = String(raw).trim().toLowerCase();
+            if (r === 'sim' || r === 's' || r === '1' || r === 'true') return 'Sim';
+            return 'Não';
+        }
+
+        function normalizeVM(raw) {
+            if (!raw) return 'Não';
+            const r = String(raw).trim().toLowerCase();
+            if (r === '' || r === 'não' || r === 'nao' || r === '0' || r === 'false') return 'Não';
+            if (r.includes('invasiv') && (r.includes('não') || r.includes('nao') || r.includes('n inv') || r.includes('ni ') || r.includes('vni') || r.includes('niv'))) return 'Sim - NÃO Invasiva';
+            if (r.includes('invasiv')) return 'Sim - Invasiva';
+            if (r === 'sim') return 'Sim - Invasiva';
+            return 'Sim - Invasiva';
+        }
+
+        // Detecta ciclos de internação (separa por Alta/Óbito, igual ao acesso_gestor)
+        function detectCycles(rows) {
+            const cycles = [];
+            let current = [];
+            for (let i = 0; i < rows.length; i++) {
+                const r = rows[i];
+                const t = r.tipo || '';
+                current.push(r);
+                const isEnd = t.includes('Alta') || t.includes('bito');
+                if (isEnd) { cycles.push([...current]); current = []; }
+            }
+            if (current.length) cycles.push([...current]);
+            return cycles;
+        }
+
+        function dcHp(id) { if (hpCharts[id]) { hpCharts[id].destroy(); delete hpCharts[id]; } }
+
+        function mcHp(id, type, labels, datasets, extra = {}) {
+            dcHp(id);
+            const ctx = document.getElementById(id);
+            if (!ctx) return;
+            hpCharts[id] = new Chart(ctx, {
+                type, data: { labels, datasets }, options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { ticks: { color: '#8b90a7', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,.06)' } }, y: { ticks: { color: '#8b90a7', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,.06)' }, beginAtZero: true } },
+                    ...extra
+                }
+            });
+        }
+
+        function trocarHpTab(name, el) {
+            document.querySelectorAll('#hp-detail .detail-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#hp-detail .detail-section').forEach(s => s.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('hp-dtab-' + name).classList.add('active');
+            if (name === 'charts') renderHpCharts(hpRowsAtual);
+        }
+
+        function renderHpDetail(rows) {
+            hpRowsAtual = rows;
+            const cycles = detectCycles(rows);
+
+            // ── LINHA DO TEMPO (com separadores de retorno/internação) ──
+            let tlHtml = '';
+            let globalIdx = 0;
+            document.getElementById('hpCycleInfo').innerHTML = cycles.length > 1
+                ? `<span class="cycle-badge" style="font-size:10px">↩ ${cycles.length} internações registradas</span> <span style="color:var(--text2)">Este paciente teve ${cycles.length} episódios de internação.</span>`
+                : '';
+            cycles.forEach((cyc, ci) => {
+                if (ci > 0) {
+                    tlHtml += `<div style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0 8px;padding-top:4px">
+                <div style="width:2px;height:26px;background:rgba(218,119,242,.4);border-left:2px dashed rgba(218,119,242,.6);margin-bottom:4px;"></div>
+                <div style="background:rgba(218,119,242,.15);color:#da77f2;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;white-space:nowrap;">↩ Retorno ${ci + 1}</div>
+                <div style="width:2px;height:20px;background:rgba(218,119,242,.4);border-left:2px dashed rgba(218,119,242,.6);margin-top:4px;"></div>
+              </div>`;
+                }
+                cyc.forEach((r, i) => {
+                    globalIdx++;
+                    const cls = tyClass(r.tipo);
+                    const startClass = i === 0 && ci > 0 ? ' cycle-start' : '';
+                    tlHtml += `<div class="timeline-item">
+                <div class="tl-dot ${cls}${startClass}">${globalIdx}</div>
+                <div class="tl-date">${fmtData(r.data_avaliacao)}</div>
+                <div class="tl-type">${esc(r.tipo)}</div>
+                <div class="tl-mob">${esc(r.mobilidade)}</div>
+              </div>`;
+                });
+            });
+            document.getElementById('hpTimeline').innerHTML = tlHtml;
+
+            // ── MOVIMENTAÇÃO DE LEITOS ──
+            renderHpLeitoTab(rows);
+
+            // ── HISTÓRICO COMPLETO (tabela) ──
+            document.getElementById('hpTableBody').innerHTML = rows.map(r => {
+                const mrc = parseFloat(r.mrc);
+                const o2txt = normalizeO2(r.o2);
+                const vmtxt = normalizeVM(r.vm);
+                return `<tr>
+                  <td>${fmtData(r.data_avaliacao)}</td>
+                  <td><span class="badge ${tyBadge(r.tipo)}">${esc(r.tipo)}</span></td>
+                  <td>${esc(r.posto || '—')}</td>
+                  <td>${esc(r.leito || '—')}</td>
+                  <td><span class="badge ${mobBadge(r.mobilidade)}">${esc(r.mobilidade)}</span></td>
+                  <td>${esc(r.dependencia)}</td>
+                  <td style="${isNaN(mrc) ? '' : (mrc <= 48 ? 'color:var(--danger)' : 'color:var(--success)')};font-weight:700">${isNaN(mrc) ? '—' : mrc}</td>
+                  <td style="font-weight:600">${o2txt}</td>
+                  <td style="font-weight:600">${vmtxt}</td>
+                  <td>${esc(r.via_aerea)}</td>
+                  <td>${esc(r.dispositivos)}</td>
+                  <td><span class="badge ${stBadge(r.status_paciente)}">${esc((r.status_paciente || '').substring(0, 24))}</span></td>
+                </tr>`;
+            }).join('');
+
+            // Reseta a aba ativa para "Linha do Tempo" a cada nova busca
+            document.querySelectorAll('#hp-detail .detail-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+            document.querySelectorAll('#hp-detail .detail-section').forEach((s, i) => s.classList.toggle('active', i === 0));
+            dcHp('hpChartMRC'); dcHp('hpChartMob');
+        }
+
+        function renderHpLeitoTab(rows) {
+            const lastRow = rows[rows.length - 1];
+            const currentLeito = lastRow ? lastRow.leito : '—';
+            const currentPosto = lastRow ? lastRow.posto : '—';
+
+            const movements = [];
+            for (let i = 1; i < rows.length; i++) {
+                const prev = rows[i - 1]; const cur = rows[i];
+                const leitoChanged = prev.leito !== cur.leito && cur.leito;
+                const postoChanged = prev.posto !== cur.posto && cur.posto;
+                if (leitoChanged || postoChanged) {
+                    movements.push({
+                        date: cur.data_avaliacao,
+                        from: (prev.leito || '—') + (prev.posto ? ' (' + prev.posto + ')' : ''),
+                        to: (cur.leito || '—') + (cur.posto ? ' (' + cur.posto + ')' : ''),
+                        type: postoChanged ? 'Transferência de Setor' : 'Mudança de Leito'
+                    });
+                }
+            }
+
+            let html = `<div class="leito-card">
+            <div class="leito-current">
+              <div class="leito-icon">🛏</div>
+              <div><div class="leito-label">Leito atual</div><div class="leito-value">${esc(currentLeito || '—')}</div><div style="font-size:10px;color:var(--text2)">${esc(currentPosto || '—')}</div></div>
+            </div>`;
+            if (movements.length) {
+                html += `<div class="leito-history"><div class="leito-history-title">Histórico de Movimentações (${movements.length})</div>`;
+                movements.forEach(m => {
+                    const isTransfer = m.type.includes('Transferência');
+                    html += `<div class="leito-row">
+                <span style="white-space:nowrap;color:var(--text2);font-size:10px">${fmtData(m.date)}</span>
+                <span class="badge ${isTransfer ? 'badge-orange' : 'badge-blue'}">${m.type}</span>
+                <span style="color:var(--text2)">${esc(m.from)}</span>
+                <span class="leito-arrow">→</span>
+                <span style="font-weight:600">${esc(m.to)}</span>
+              </div>`;
+                });
+                html += '</div>';
+            } else {
+                html += `<div style="font-size:11px;color:var(--text2);padding-top:10px;border-top:1px solid var(--border)">Nenhuma movimentação de leito registrada — paciente permaneceu no mesmo leito durante todo o acompanhamento.</div>`;
+            }
+            html += '</div>';
+
+            html += `<div style="font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:8px;">Registro por Avaliação</div>`;
+            html += `<div class="scrollable"><table><thead><tr><th>Data</th><th>Tipo</th><th>Setor/Posto</th><th>Leito</th></tr></thead><tbody>`;
+            html += rows.map(r => `<tr><td>${fmtData(r.data_avaliacao)}</td><td><span class="badge ${tyBadge(r.tipo)}">${esc(r.tipo)}</span></td><td>${esc(r.posto || '—')}</td><td style="font-weight:600">${esc(r.leito || '—')}</td></tr>`).join('');
+            html += '</tbody></table></div>';
+            document.getElementById('hpLeitoContent').innerHTML = html;
+        }
+
+        function renderHpCharts(rows) {
+            dcHp('hpChartMRC'); dcHp('hpChartMob');
+            const mr = rows.filter(r => !isNaN(parseFloat(r.mrc)));
+            if (mr.length) {
+                mcHp('hpChartMRC', 'line', mr.map(r => fmtData(r.data_avaliacao)), [{
+                    label: 'MRC', data: mr.map(r => parseFloat(r.mrc)), borderColor: '#4f8ef7',
+                    backgroundColor: 'rgba(79,142,247,.1)', tension: .3, fill: true, pointRadius: 5, pointBackgroundColor: '#4f8ef7'
+                }], { scales: { y: { min: 0, max: 60 } } });
+            }
+            const md = rows.map(r => mobScore(r.mobilidade));
+            if (md.some(v => v > 0)) {
+                mcHp('hpChartMob', 'line', rows.map(r => fmtData(r.data_avaliacao)), [{
+                    label: 'Mobilidade', data: md, borderColor: '#38d9a9',
+                    backgroundColor: 'rgba(56,217,169,.1)', tension: .3, fill: true, pointRadius: 5, pointBackgroundColor: '#38d9a9'
+                }], { scales: { y: { min: 0, max: 6, ticks: { callback: v => MOB[v - 1] ? MOB[v - 1].substring(0, 12) + '...' : '' } } } });
+            }
         }
 
         // ── LOGOUT ──
