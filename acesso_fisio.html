@@ -824,6 +824,27 @@
         /* TABELA HISTÓRICO COMPLETO */
         .scrollable {
             overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) var(--surface2);
+        }
+
+        /* Mesma barra de rolagem personalizada usada na Linha do Tempo */
+        .scrollable::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .scrollable::-webkit-scrollbar-track {
+            background: var(--surface2);
+            border-radius: 10px;
+        }
+
+        .scrollable::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .scrollable::-webkit-scrollbar-thumb:hover {
+            background: var(--accent2);
         }
 
         .scrollable table {
@@ -832,9 +853,9 @@
         }
 
         .scrollable th {
-            padding: 9px 12px;
+            padding: 12px 16px;
             text-align: left;
-            font-size: 9px;
+            font-size: 11px;
             font-weight: 700;
             color: var(--text2);
             text-transform: uppercase;
@@ -845,8 +866,8 @@
         }
 
         .scrollable td {
-            padding: 9px 12px;
-            font-size: 11px;
+            padding: 12px 16px;
+            font-size: 13px;
             border-bottom: 1px solid rgba(255, 255, 255, .06);
             vertical-align: middle;
             white-space: nowrap;
@@ -859,9 +880,9 @@
         /* BADGES (linha do tempo / tabela) */
         .badge {
             display: inline-block;
-            padding: 2px 8px;
+            padding: 3px 10px;
             border-radius: 20px;
-            font-size: 9px;
+            font-size: 11px;
             font-weight: 700;
             white-space: nowrap;
         }
