@@ -550,93 +550,47 @@
             display: block;
         }
 
-        /* TIMELINE */
-        .timeline {
-            display: flex;
-            overflow-x: auto;
-            padding-bottom: 10px;
-            margin-bottom: 4px;
-        }
-
-        .timeline-item {
-            flex: 0 0 175px;
-            position: relative;
-        }
-
-        .timeline-item:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            top: 15px;
-            left: 108px;
-            right: -67px;
-            height: 2px;
-            background: var(--border);
-        }
-
-        .tl-dot {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
+        /* LINHA DO TEMPO — cartão do paciente com avaliações em scroll horizontal
+           (layout idêntico ao da página "Evolução por Paciente" do acesso_gestor) */
+        .patient-row-header {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 11px;
+            padding: 0 0 12px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .patient-row-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .patient-name {
+            font-size: 15px;
             font-weight: 700;
-            margin-bottom: 7px;
-            position: relative;
-            z-index: 1;
         }
 
-        .tl-dot.admissao {
-            background: rgba(79, 142, 247, .2);
-            color: var(--accent);
-            border: 2px solid var(--accent);
-        }
-
-        .tl-dot.reavaliacao {
-            background: rgba(255, 169, 77, .2);
-            color: var(--accent3);
-            border: 2px solid var(--accent3);
-        }
-
-        .tl-dot.alta {
-            background: rgba(56, 217, 169, .2);
-            color: var(--accent2);
-            border: 2px solid var(--accent2);
-        }
-
-        .tl-dot.obito {
-            background: rgba(240, 101, 149, .2);
-            color: var(--accent4);
-            border: 2px solid var(--accent4);
-        }
-
-        .tl-dot.transferencia {
-            background: rgba(218, 119, 242, .2);
-            color: #da77f2;
-            border: 2px solid #da77f2;
-        }
-
-        .tl-dot.cycle-start {
-            outline: 3px solid rgba(218, 119, 242, .5);
-            outline-offset: 2px;
-        }
-
-        .tl-date {
-            font-size: 9px;
-            color: var(--text2);
-            margin-bottom: 2px;
-        }
-
-        .tl-type {
+        .patient-meta {
             font-size: 10px;
-            font-weight: 600;
-            margin-bottom: 2px;
+            color: var(--text2);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 4px;
         }
 
-        .tl-mob {
+        .patient-fisio-tag {
             font-size: 9px;
             color: var(--text2);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            margin-top: 3px;
+        }
+
+        .patient-fisio-tag .fisio-val {
+            color: var(--accent);
+            font-weight: 600;
         }
 
         .cycle-badge {
@@ -648,6 +602,95 @@
             background: rgba(218, 119, 242, .15);
             color: #da77f2;
             margin-left: 6px;
+        }
+
+        .patient-evals-scroll {
+            overflow-x: auto;
+            border-top: 1px solid var(--border);
+            padding: 14px 0 4px;
+            display: flex;
+            gap: 8px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .eval-chip {
+            flex: 0 0 auto;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 11px;
+            min-width: 152px;
+            max-width: 210px;
+        }
+
+        .eval-chip.admissao {
+            border-top: 2px solid var(--accent);
+        }
+
+        .eval-chip.reavaliacao {
+            border-top: 2px solid var(--accent3);
+        }
+
+        .eval-chip.alta {
+            border-top: 2px solid var(--accent2);
+        }
+
+        .eval-chip.obito {
+            border-top: 2px solid var(--accent4);
+        }
+
+        .eval-chip.transferencia {
+            border-top: 2px solid #da77f2;
+        }
+
+        .eval-chip-date {
+            font-size: 9px;
+            color: var(--text2);
+            margin-bottom: 2px;
+        }
+
+        .eval-chip-type {
+            font-size: 10px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .eval-chip-mob {
+            font-size: 9px;
+            color: var(--text2);
+        }
+
+        .eval-chip-mrc {
+            font-size: 9px;
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        .eval-chip-extra {
+            font-size: 9px;
+            color: var(--text2);
+            margin-top: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            border-top: 1px solid var(--border);
+            padding-top: 4px;
+        }
+
+        .eval-chip-extra span {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .eval-chip-extra .lbl {
+            color: var(--text3);
+            font-weight: 700;
+            min-width: 44px;
+        }
+
+        .eval-chip-extra .val {
+            color: var(--text);
         }
 
         /* CHARTS */
@@ -1066,8 +1109,15 @@
 
                 <!-- Tab: Linha do Tempo -->
                 <div class="detail-section active" id="hp-dtab-timeline">
-                    <div id="hpCycleInfo" style="margin-bottom:12px;font-size:11px;color:var(--text2);"></div>
-                    <div class="timeline" id="hpTimeline"></div>
+                    <div class="patient-row-header">
+                        <div class="patient-row-info">
+                            <div class="patient-name" id="hpTlName">—</div>
+                            <div class="patient-meta" id="hpTlMeta"></div>
+                            <div class="patient-fisio-tag" id="hpTlFisio"></div>
+                        </div>
+                        <div id="hpTlStatusBadge"></div>
+                    </div>
+                    <div class="patient-evals-scroll" id="hpTimeline"></div>
                 </div>
 
                 <!-- Tab: Gráficos -->
@@ -1728,6 +1778,62 @@
             return cycles;
         }
 
+        // Verifica se o paciente ainda está em acompanhamento (mesma lógica do acesso_gestor)
+        function isActive(rows) {
+            if (!rows.length) return false;
+            const last = rows[rows.length - 1];
+            const status = (last.status_paciente || '').toLowerCase();
+            const type = (last.tipo || '').toLowerCase();
+            const texto = status + ' ' + type;
+            return !(texto.includes('alta') || texto.includes('óbito') || texto.includes('obito') || texto.includes('transfer'));
+        }
+
+        // Previsão terapêutica — calcula status a partir da última reavaliação com prazo
+        function parsePrevisaoSemanas(str) {
+            if (!str || str === '—' || str.trim() === '') return null;
+            const s = str.toLowerCase();
+            if (s.includes('>8') || s.includes('> 8')) return 10;
+            const m = s.match(/(\d+)\s*a\s*(\d+)/);
+            if (m) return (parseInt(m[1]) + parseInt(m[2])) / 2;
+            const single = s.match(/(\d+)/);
+            if (single) return parseInt(single[1]);
+            return null;
+        }
+
+        function calcPrevisaoStatus(rows) {
+            let lastWithPrazo = null;
+            for (let i = rows.length - 1; i >= 0; i--) {
+                const p = rows[i].previsao;
+                if (p && p !== '—' && p.trim() !== '') { lastWithPrazo = rows[i]; break; }
+            }
+            if (!lastWithPrazo) return null;
+
+            const lastRow = rows[rows.length - 1];
+            const tipoUltimo = (lastRow.tipo || '').toLowerCase();
+            const statusUltimo = (lastRow.status_paciente || '').toLowerCase();
+
+            if (tipoUltimo.includes('alta') || statusUltimo.includes('alta')) {
+                return { status: 'concluido', label: '✅ Alta da Fisioterapia', color: 'var(--accent2)', prazo: lastWithPrazo.previsao, baseDate: lastWithPrazo.data_avaliacao };
+            }
+
+            const semanas = parsePrevisaoSemanas(lastWithPrazo.previsao);
+            if (!semanas) return null;
+
+            const baseTs = pd(lastWithPrazo.data_avaliacao);
+            if (!baseTs) return null;
+
+            const prazoTs = baseTs + (semanas * 7 * 24 * 60 * 60 * 1000);
+            const hoje = Date.now();
+
+            if (hoje <= prazoTs) {
+                const diasRestantes = Math.ceil((prazoTs - hoje) / (24 * 60 * 60 * 1000));
+                return { status: 'no_prazo', label: `⏳ No prazo (${diasRestantes}d restantes)`, color: 'var(--accent3)', prazo: lastWithPrazo.previsao, baseDate: lastWithPrazo.data_avaliacao, diasRestantes };
+            } else {
+                const diasAtraso = Math.floor((hoje - prazoTs) / (24 * 60 * 60 * 1000));
+                return { status: 'atrasado', label: `⚠️ Prazo vencido (${diasAtraso}d de atraso)`, color: 'var(--danger)', prazo: lastWithPrazo.previsao, baseDate: lastWithPrazo.data_avaliacao, diasAtraso };
+            }
+        }
+
         function dcHp(id) { if (hpCharts[id]) { hpCharts[id].destroy(); delete hpCharts[id]; } }
 
         function mcHp(id, type, labels, datasets, extra = {}) {
@@ -1755,34 +1861,50 @@
         function renderHpDetail(rows) {
             hpRowsAtual = rows;
             const cycles = detectCycles(rows);
+            const hasCycles = cycles.length > 1;
+            const last = rows[rows.length - 1];
+            const active = isActive(rows);
+            const lastFisio = last ? last.fisio_nome : '';
+            const prevStatus = calcPrevisaoStatus(rows);
 
-            // ── LINHA DO TEMPO (com separadores de retorno/internação) ──
-            let tlHtml = '';
-            let globalIdx = 0;
-            document.getElementById('hpCycleInfo').innerHTML = cycles.length > 1
-                ? `<span class="cycle-badge" style="font-size:10px">↩ ${cycles.length} internações registradas</span> <span style="color:var(--text2)">Este paciente teve ${cycles.length} episódios de internação.</span>`
-                : '';
+            // ── CABEÇALHO DO PACIENTE ──
+            document.getElementById('hpTlName').innerHTML = `${esc(last.paciente)}${hasCycles ? `<span class="cycle-badge">↩ ${cycles.length} internações</span>` : ''}`;
+            document.getElementById('hpTlMeta').innerHTML = `
+                <span>📋 ${esc(last.prontuario)}</span>
+                <span>🏥 ${esc(last.posto || '—')}</span>
+                <span>🛏 ${esc(last.leito || '—')}</span>
+                <span>${rows.length} aval.</span>
+                ${(prevStatus && prevStatus.status !== 'concluido') ? `<span style="color:${prevStatus.color};font-weight:700">${prevStatus.label}</span>` : ''}
+            `;
+            document.getElementById('hpTlFisio').innerHTML = lastFisio ? `👩‍⚕️ Último atendimento: <span class="fisio-val">${esc(lastFisio)}</span>` : '';
+            document.getElementById('hpTlStatusBadge').innerHTML = `<span class="badge ${stBadge(last ? last.status_paciente : '')}">${active ? 'Em acompanhamento fisioterapêutico' : esc((last ? last.status_paciente : '—').substring(0, 28))}</span>`;
+
+            // ── LINHA DO TEMPO (cartões em scroll horizontal, com separador de retorno) ──
+            let chips = '';
             cycles.forEach((cyc, ci) => {
-                if (ci > 0) {
-                    tlHtml += `<div style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0 8px;padding-top:4px">
-                <div style="width:2px;height:26px;background:rgba(218,119,242,.4);border-left:2px dashed rgba(218,119,242,.6);margin-bottom:4px;"></div>
-                <div style="background:rgba(218,119,242,.15);color:#da77f2;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;white-space:nowrap;">↩ Retorno ${ci + 1}</div>
-                <div style="width:2px;height:20px;background:rgba(218,119,242,.4);border-left:2px dashed rgba(218,119,242,.6);margin-top:4px;"></div>
-              </div>`;
-                }
-                cyc.forEach((r, i) => {
-                    globalIdx++;
-                    const cls = tyClass(r.tipo);
-                    const startClass = i === 0 && ci > 0 ? ' cycle-start' : '';
-                    tlHtml += `<div class="timeline-item">
-                <div class="tl-dot ${cls}${startClass}">${globalIdx}</div>
-                <div class="tl-date">${fmtData(r.data_avaliacao)}</div>
-                <div class="tl-type">${esc(r.tipo)}</div>
-                <div class="tl-mob">${esc(r.mobilidade)}</div>
-              </div>`;
+                if (ci > 0) chips += `<div class="eval-chip" style="border:none;background:transparent;display:flex;align-items:center;padding:0 4px"><div style="writing-mode:vertical-rl;font-size:8px;color:#da77f2;font-weight:700;white-space:nowrap">↩ Retorno ${ci + 1}</div></div>`;
+                cyc.forEach(r => {
+                    const mrc = parseFloat(r.mrc);
+                    const mrcColor = isNaN(mrc) ? 'var(--text2)' : (mrc <= 48 ? 'var(--danger)' : 'var(--success)');
+                    const o2txt = normalizeO2(r.o2);
+                    const vmtxt = normalizeVM(r.vm);
+                    const vmColor = vmtxt === 'Não' ? 'var(--text3)' : vmtxt.includes('NÃO') ? 'var(--accent3)' : 'var(--danger)';
+                    const o2Color = o2txt === 'Sim' ? 'var(--accent3)' : 'var(--text3)';
+                    chips += `<div class="eval-chip ${tyClass(r.tipo)}">
+                  <div class="eval-chip-date">${fmtData(r.data_avaliacao)}</div>
+                  <div class="eval-chip-type">${esc(r.tipo)}</div>
+                  <div class="eval-chip-mob">${esc(r.mobilidade) || '—'}</div>
+                  ${!isNaN(mrc) ? `<div class="eval-chip-mrc" style="color:${mrcColor}">MRC: ${mrc}</div>` : ''}
+                  <div class="eval-chip-extra">
+                    ${r.dependencia ? `<span><span class="lbl">Dep.</span><span class="val">${esc(r.dependencia)}</span></span>` : ''}
+                    <span><span class="lbl">O₂</span><span class="val" style="color:${o2Color};font-weight:600">${o2txt}</span></span>
+                    <span><span class="lbl">VM</span><span class="val" style="color:${vmColor};font-weight:600">${vmtxt}</span></span>
+                    ${r.via_aerea ? `<span><span class="lbl">Via Aérea</span><span class="val">${esc(r.via_aerea)}</span></span>` : ''}
+                  </div>
+                </div>`;
                 });
             });
-            document.getElementById('hpTimeline').innerHTML = tlHtml;
+            document.getElementById('hpTimeline').innerHTML = chips;
 
             // ── MOVIMENTAÇÃO DE LEITOS ──
             renderHpLeitoTab(rows);
