@@ -607,20 +607,42 @@
         .patient-evals-scroll {
             overflow-x: auto;
             border-top: 1px solid var(--border);
-            padding: 14px 0 4px;
+            padding: 16px 0 12px;
             display: flex;
-            gap: 8px;
+            gap: 12px;
             -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) var(--surface2);
+        }
+
+        /* Barra de rolagem personalizada — só aparece quando o conteúdo
+           realmente excede a largura do bloco (overflow-x: auto nativo) */
+        .patient-evals-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .patient-evals-scroll::-webkit-scrollbar-track {
+            background: var(--surface2);
+            border-radius: 10px;
+        }
+
+        .patient-evals-scroll::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .patient-evals-scroll::-webkit-scrollbar-thumb:hover {
+            background: var(--accent2);
         }
 
         .eval-chip {
             flex: 0 0 auto;
             background: var(--surface2);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 7px 11px;
-            min-width: 152px;
-            max-width: 210px;
+            border-radius: 10px;
+            padding: 12px 16px;
+            min-width: 230px;
+            max-width: 280px;
         }
 
         .eval-chip.admissao {
@@ -644,49 +666,49 @@
         }
 
         .eval-chip-date {
-            font-size: 9px;
+            font-size: 11px;
             color: var(--text2);
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
 
         .eval-chip-type {
-            font-size: 10px;
+            font-size: 13px;
             font-weight: 700;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
 
         .eval-chip-mob {
-            font-size: 9px;
+            font-size: 12px;
             color: var(--text2);
         }
 
         .eval-chip-mrc {
-            font-size: 9px;
+            font-size: 12px;
             font-weight: 700;
-            margin-top: 3px;
+            margin-top: 5px;
         }
 
         .eval-chip-extra {
-            font-size: 9px;
+            font-size: 11px;
             color: var(--text2);
-            margin-top: 4px;
+            margin-top: 7px;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
             border-top: 1px solid var(--border);
-            padding-top: 4px;
+            padding-top: 7px;
         }
 
         .eval-chip-extra span {
             display: flex;
-            gap: 4px;
+            gap: 5px;
             align-items: center;
         }
 
         .eval-chip-extra .lbl {
             color: var(--text3);
             font-weight: 700;
-            min-width: 44px;
+            min-width: 54px;
         }
 
         .eval-chip-extra .val {
@@ -1882,7 +1904,7 @@
             // ── LINHA DO TEMPO (cartões em scroll horizontal, com separador de retorno) ──
             let chips = '';
             cycles.forEach((cyc, ci) => {
-                if (ci > 0) chips += `<div class="eval-chip" style="border:none;background:transparent;display:flex;align-items:center;padding:0 4px"><div style="writing-mode:vertical-rl;font-size:8px;color:#da77f2;font-weight:700;white-space:nowrap">↩ Retorno ${ci + 1}</div></div>`;
+                if (ci > 0) chips += `<div class="eval-chip" style="border:none;background:transparent;display:flex;align-items:center;padding:0 4px"><div style="writing-mode:vertical-rl;font-size:10px;color:#da77f2;font-weight:700;white-space:nowrap">↩ Retorno ${ci + 1}</div></div>`;
                 cyc.forEach(r => {
                     const mrc = parseFloat(r.mrc);
                     const mrcColor = isNaN(mrc) ? 'var(--text2)' : (mrc <= 48 ? 'var(--danger)' : 'var(--success)');
